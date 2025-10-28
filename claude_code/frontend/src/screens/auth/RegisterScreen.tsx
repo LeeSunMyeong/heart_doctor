@@ -27,7 +27,7 @@ export const RegisterScreen = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
-  const [userId, setUserId] = useState('');
+  const [loginId, setLoginId] = useState('');
   const [password, setPassword] = useState('');
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -55,7 +55,7 @@ export const RegisterScreen = () => {
   };
 
   const handleRegister = async () => {
-    if (!name || !phone || !userId || !password) {
+    if (!name || !phone || !loginId || !password) {
       Alert.alert('입력 오류', '모든 필드를 입력해주세요.');
       return;
     }
@@ -75,7 +75,7 @@ export const RegisterScreen = () => {
       const registeredUserId = await authService.register({
         name,
         phone,
-        userId,
+        userId: loginId, // loginId를 userId 필드로 전송 (백엔드 호환성)
         password,
       });
       console.log('[RegisterScreen] Registration successful, userId:', registeredUserId);
@@ -92,7 +92,7 @@ export const RegisterScreen = () => {
     }
   };
 
-  const isFormValid = name && phone && userId && password && isVerificationSent;
+  const isFormValid = name && phone && loginId && password && isVerificationSent;
 
   return (
     <KeyboardAvoidingView
@@ -148,13 +148,13 @@ export const RegisterScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* User ID Input */}
+        {/* Login ID Input */}
         <TextInput
           style={styles.input}
-          placeholder="아이디 (4-20자, 영문자, 숫자, 언더스코어)"
+          placeholder="로그인 아이디 (4-20자, 영문자, 숫자, 언더스코어)"
           placeholderTextColor="#C7C7CD"
-          value={userId}
-          onChangeText={setUserId}
+          value={loginId}
+          onChangeText={setLoginId}
           editable={!loading}
           autoCapitalize="none"
         />
