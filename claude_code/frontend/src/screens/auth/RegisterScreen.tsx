@@ -25,35 +25,46 @@ type RegisterScreenNavigationProp = NativeStackNavigationProp<RootStackParamList
 
 export const RegisterScreen = () => {
   const navigation = useNavigation<RegisterScreenNavigationProp>();
-  const [name, setName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [userId, setUserId] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [age, setAge] = useState('');
+  const [gender, setGender] = useState<'MALE' | 'FEMALE' | 'OTHER'>('MALE');
   const [isVerificationSent, setIsVerificationSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleVerifyPhone = async () => {
-    if (!phone) {
+    if (!phoneNumber) {
       Alert.alert('입력 오류', '휴대폰 번호를 입력해주세요.');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Implement phone verification API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const exists = await authService.checkPhoneExists(phoneNumber);
+      if (exists) {
+        Alert.alert('중복 확인', '이미 사용 중인 휴대폰 번호입니다.');
+        return;
+      }
       setIsVerificationSent(true);
-      Alert.alert('인증번호 발송', '인증번호가 발송되었습니다.');
+      Alert.alert('인증 완료', '사용 가능한 휴대폰 번호입니다.');
     } catch (error: any) {
-      Alert.alert('발송 실패', error.message || '인증번호 발송에 실패했습니다.');
+      Alert.alert('확인 실패', error.message || '휴대폰 번호 확인에 실패했습니다.');
     } finally {
       setLoading(false);
     }
   };
 
+  const validatePassword = (pwd: string): boolean => {
+    // Min 8 chars, at least 1 uppercase, 1 lowercase, 1 number, 1 special char
+    const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+    return regex.test(pwd);
+  };
+
   const handleRegister = async () => {
-    if (!name || !phone || !userId || !password) {
+    if (!email || !password || !confirmPassword || !fullName || !phoneNumber || !age) {
       Alert.alert('입력 오류', '모든 필드를 입력해주세요.');
       return;
     }
@@ -63,16 +74,43 @@ export const RegisterScreen = () => {
       return;
     }
 
+    if (password !== confirmPassword) {
+      Alert.alert('비밀번호 오류', '비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    if (!validatePassword(password)) {
+      Alert.alert(
+        '비밀번호 형식 오류',
+        '비밀번호는 8자 이상이며, 대문자, 소문자, 숫자, 특수문자를 각각 최소 1개 포함해야 합니다.'
+      );
+      return;
+    }
+
+    const ageNum = parseInt(age, 10);
+    if (isNaN(ageNum) || ageNum < 18 || ageNum > 120) {
+      Alert.alert('나이 오류', '나이는 18세 이상 120세 이하여야 합니다.');
+      return;
+    }
+
     setLoading(true);
     try {
-      await authService.register({
-        name,
-        phone,
-        userId,
+      const userId = await authService.register({
+        email,
         password,
+        confirmPassword,
+        fullName,
+        phoneNumber,
+        age: ageNum,
+        gender,
       });
-      Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.');
-      navigation.navigate('Login');
+      console.log('[RegisterScreen] Registration successful, userId:', userId);
+      Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
+        {
+          text: '확인',
+          onPress: () => navigation.navigate('Login'),
+        },
+      ]);
     } catch (error: any) {
       Alert.alert('회원가입 실패', error.message || '회원가입에 실패했습니다.');
     } finally {
@@ -80,7 +118,7 @@ export const RegisterScreen = () => {
     }
   };
 
-  const isFormValid = name && phone && userId && password && isVerificationSent;
+  const isFormValid = email && password && confirmPassword && fullName && phoneNumber && age && isVerificationSent;
 
   return (
     <KeyboardAvoidingView
@@ -102,13 +140,25 @@ export const RegisterScreen = () => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
 
-        {/* Name Input */}
+        {/* Email Input */}
         <TextInput
           style={styles.input}
-          placeholder="이름"
+          placeholder="이메일"
           placeholderTextColor="#C7C7CD"
-          value={name}
-          onChangeText={setName}
+          keyboardType="email-address"
+          value={email}
+          onChangeText={setEmail}
+          editable={!loading}
+          autoCapitalize="none"
+        />
+
+        {/* Full Name Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="이름 (2-50자)"
+          placeholderTextColor="#C7C7CD"
+          value={fullName}
+          onChangeText={setFullName}
           editable={!loading}
         />
 
@@ -116,11 +166,11 @@ export const RegisterScreen = () => {
         <View style={styles.phoneContainer}>
           <TextInput
             style={styles.phoneInput}
-            placeholder="휴대폰 번호"
+            placeholder="휴대폰 번호 (01012345678)"
             placeholderTextColor="#C7C7CD"
             keyboardType="phone-pad"
-            value={phone}
-            onChangeText={setPhone}
+            value={phoneNumber}
+            onChangeText={setPhoneNumber}
             editable={!loading && !isVerificationSent}
           />
           <TouchableOpacity
@@ -136,25 +186,89 @@ export const RegisterScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* ID Input */}
+        {/* Age Input */}
         <TextInput
           style={styles.input}
-          placeholder="아이디"
+          placeholder="나이 (18-120)"
           placeholderTextColor="#C7C7CD"
-          value={userId}
-          onChangeText={setUserId}
+          keyboardType="number-pad"
+          value={age}
+          onChangeText={setAge}
           editable={!loading}
-          autoCapitalize="none"
         />
+
+        {/* Gender Selector */}
+        <View style={styles.genderContainer}>
+          <Text style={styles.genderLabel}>성별</Text>
+          <View style={styles.genderButtons}>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                gender === 'MALE' && styles.genderButtonActive,
+              ]}
+              onPress={() => setGender('MALE')}
+              disabled={loading}>
+              <Text
+                style={[
+                  styles.genderButtonText,
+                  gender === 'MALE' && styles.genderButtonTextActive,
+                ]}>
+                남성
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                gender === 'FEMALE' && styles.genderButtonActive,
+              ]}
+              onPress={() => setGender('FEMALE')}
+              disabled={loading}>
+              <Text
+                style={[
+                  styles.genderButtonText,
+                  gender === 'FEMALE' && styles.genderButtonTextActive,
+                ]}>
+                여성
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.genderButton,
+                gender === 'OTHER' && styles.genderButtonActive,
+              ]}
+              onPress={() => setGender('OTHER')}
+              disabled={loading}>
+              <Text
+                style={[
+                  styles.genderButtonText,
+                  gender === 'OTHER' && styles.genderButtonTextActive,
+                ]}>
+                기타
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
 
         {/* Password Input */}
         <TextInput
           style={styles.input}
-          placeholder="비밀번호"
+          placeholder="비밀번호 (8자 이상, 대소문자, 숫자, 특수문자 포함)"
           placeholderTextColor="#C7C7CD"
           secureTextEntry
           value={password}
           onChangeText={setPassword}
+          editable={!loading}
+          autoCapitalize="none"
+        />
+
+        {/* Confirm Password Input */}
+        <TextInput
+          style={styles.input}
+          placeholder="비밀번호 확인"
+          placeholderTextColor="#C7C7CD"
+          secureTextEntry
+          value={confirmPassword}
+          onChangeText={setConfirmPassword}
           editable={!loading}
           autoCapitalize="none"
         />
@@ -281,6 +395,41 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  genderContainer: {
+    marginBottom: 12,
+  },
+  genderLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#000000',
+    marginBottom: 8,
+  },
+  genderButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  genderButton: {
+    flex: 1,
+    height: 44,
+    backgroundColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: '#E5E5EA',
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  genderButtonActive: {
+    backgroundColor: '#000000',
+    borderColor: '#000000',
+  },
+  genderButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#8E8E93',
+  },
+  genderButtonTextActive: {
+    color: '#FFFFFF',
   },
 });
 

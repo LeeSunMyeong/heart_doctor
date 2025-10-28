@@ -27,20 +27,20 @@ type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, '
 
 export const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
-  const [userId, setUserId] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    if (!userId || !password) {
-      Alert.alert('입력 오류', '아이디와 비밀번호를 모두 입력해주세요.');
+    if (!phone || !password) {
+      Alert.alert('입력 오류', '휴대폰 번호와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
     setLoading(true);
     try {
-      // TODO: Update authService to use userId instead of phone
-      await authService.login({ phone: userId, password });
+      const response = await authService.login({ phone, password });
+      console.log('[LoginScreen] Login successful:', response.user);
       navigation.navigate('Home');
     } catch (error: any) {
       Alert.alert('로그인 실패', error.message || '로그인에 실패했습니다.');
@@ -67,13 +67,14 @@ export const LoginScreen = () => {
           <Text style={styles.logoText}>logo</Text>
         </View>
 
-        {/* ID Input */}
+        {/* Phone Input */}
         <TextInput
           style={styles.input}
-          placeholder="아이디"
+          placeholder="휴대폰 번호 (숫자만 11자리)"
           placeholderTextColor="#C7C7CD"
-          value={userId}
-          onChangeText={setUserId}
+          keyboardType="phone-pad"
+          value={phone}
+          onChangeText={setPhone}
           editable={!loading}
           autoCapitalize="none"
         />

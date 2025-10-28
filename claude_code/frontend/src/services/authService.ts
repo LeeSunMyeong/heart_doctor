@@ -1,7 +1,7 @@
 import { api } from './api';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// 인증 관련 타입 정의
+// Backend API 타입 정의
 export interface LoginRequest {
   phone: string;
   password: string;
@@ -18,19 +18,36 @@ export interface RegisterRequest {
 }
 
 export interface LoginResponse {
-  accessToken: string;
-  refreshToken: string;
-  user: User;
+  user: UserInfo;
+  tokens: TokenInfo;
 }
 
+export interface UserInfo {
+  userId: number;
+  email: string;
+  name: string;
+  profileImageUrl?: string;
+  userType: string;
+  subscriptionStatus: string;
+  remainingFreeTests?: number;
+  dailyTestLimit?: number;
+  subscriptionExpiry?: string;
+}
+
+export interface TokenInfo {
+  accessToken: string;
+  refreshToken: string;
+  tokenType: string;
+  expiresIn: number;
+}
+
+// 간소화된 User 타입 (호환성)
 export interface User {
   userId: number;
-  email?: string;
+  email: string;
   userName: string;
-  phone: string;
-  userDob: string;
-  role: 'USER' | 'ADMIN';
-  isActive: boolean;
+  phone?: string;
+  userType: string;
 }
 
 // 인증 서비스
@@ -40,20 +57,27 @@ class AuthService {
    */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     try {
+      console.log('[AuthService] Login request:', { phone: credentials.phone });
       const response = await api.post<LoginResponse>('/auth/login', credentials);
+      console.log('[AuthService] Login response:', response);
 
-      if (response.success && response.data) {
+      if (response) {
         // 토큰 및 사용자 정보 저장
-        await AsyncStorage.setItem('accessToken', response.data.accessToken);
-        await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
-        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
+        await AsyncStorage.setItem('accessToken', response.tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', response.tokens.refreshToken);
+        await AsyncStorage.setItem('user', JSON.stringify(response.user));
 
-        return response.data;
+        console.log('[AuthService] Login successful, tokens saved');
+        return response;
       }
 
-      throw new Error(response.message || '로그인에 실패했습니다.');
-    } catch (error) {
-      throw error;
+      throw new Error('로그인에 실패했습니다.');
+    } catch (error: any) {
+      console.error('[AuthService] Login error:', error);
+      if (error.response?.status === 401) {
+        throw new Error('휴대폰 번호 또는 비밀번호가 잘못되었습니다.');
+      }
+      throw new Error(error.message || '로그인에 실패했습니다.');
     }
   }
 
@@ -62,18 +86,31 @@ class AuthService {
    */
   async register(userData: RegisterRequest): Promise<number> {
     try {
-      console.log(`[AuthService] Register request:`, userData);
-      const response = await api.post<number>('/auth/register', userData);
-      console.log(`[AuthService] Register response:`, response);
+      console.log('[AuthService] Register request:', userData);
+
+      // 비밀번호 확인
+      if (userData.password !== userData.confirmPassword) {
+        throw new Error('비밀번호가 일치하지 않습니다.');
+      }
+
+      const response = await api.post<{success: boolean; data: number; message: string}>(
+        '/auth/register',
+        userData
+      );
+      console.log('[AuthService] Register response:', response);
 
       if (response.success && response.data) {
+        console.log('[AuthService] Registration successful, userId:', response.data);
         return response.data;
       }
 
       throw new Error(response.message || '회원가입에 실패했습니다.');
-    } catch (error) {
-      console.error(`[AuthService] Register error:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error('[AuthService] Register error:', error);
+      if (error.response?.data?.message) {
+        throw new Error(error.response.data.message);
+      }
+      throw new Error(error.message || '회원가입에 실패했습니다.');
     }
   }
 
@@ -82,18 +119,20 @@ class AuthService {
    */
   async checkPhoneExists(phone: string): Promise<boolean> {
     try {
-      console.log(`[AuthService] Checking phone exists: ${phone}`);
-      const response = await api.get<boolean>(`/auth/check-phone/${phone}`);
-      console.log(`[AuthService] Phone check response:`, response);
+      console.log('[AuthService] Checking phone exists:', phone);
+      const response = await api.get<{success: boolean; data: boolean; message: string}>(
+        `/auth/check-phone/${phone}`
+      );
+      console.log('[AuthService] Phone check response:', response);
 
-      if (response.success && response.data !== undefined) {
+      if (response.success) {
         return response.data;
       }
 
       return false;
-    } catch (error) {
-      console.error(`[AuthService] Phone check error:`, error);
-      throw error;
+    } catch (error: any) {
+      console.error('[AuthService] Phone check error:', error);
+      return false;
     }
   }
 
@@ -102,13 +141,14 @@ class AuthService {
    */
   async logout(): Promise<void> {
     try {
-      // 서버에 로그아웃 요청 (선택사항)
-      // await api.post('/auth/logout');
+      // 서버에 로그아웃 요청
+      await api.post('/auth/logout', {});
 
       // 로컬 토큰 및 사용자 정보 삭제
       await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+      console.log('[AuthService] Logout successful');
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error('[AuthService] Logout error:', error);
       // 에러가 발생해도 로컬 데이터는 삭제
       await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
     }
@@ -117,91 +157,51 @@ class AuthService {
   /**
    * 현재 사용자 정보 가져오기
    */
-  async getCurrentUser(): Promise<User | null> {
+  async getCurrentUser(): Promise<UserInfo | null> {
     try {
       const userString = await AsyncStorage.getItem('user');
       if (userString) {
-        return JSON.parse(userString) as User;
+        return JSON.parse(userString) as UserInfo;
       }
       return null;
     } catch (error) {
-      console.error('Get current user error:', error);
+      console.error('[AuthService] Get current user error:', error);
       return null;
-    }
-  }
-
-  /**
-   * 이메일 찾기
-   */
-  async findEmail(userName: string, phone: string): Promise<string> {
-    try {
-      const response = await api.post<{ email: string }>('/auth/find-email', {
-        userName,
-        phone,
-      });
-
-      if (response.success && response.data) {
-        return response.data.email;
-      }
-
-      throw new Error(response.message || '이메일을 찾을 수 없습니다.');
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * 비밀번호 재설정 요청
-   */
-  async requestPasswordReset(email: string): Promise<void> {
-    try {
-      const response = await api.post('/auth/password-reset/request', { email });
-
-      if (!response.success) {
-        throw new Error(response.message || '비밀번호 재설정 요청에 실패했습니다.');
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  /**
-   * 비밀번호 재설정
-   */
-  async resetPassword(token: string, newPassword: string): Promise<void> {
-    try {
-      const response = await api.post('/auth/password-reset/confirm', {
-        token,
-        newPassword,
-      });
-
-      if (!response.success) {
-        throw new Error(response.message || '비밀번호 재설정에 실패했습니다.');
-      }
-    } catch (error) {
-      throw error;
     }
   }
 
   /**
    * 토큰 갱신
    */
-  async refreshToken(refreshToken: string): Promise<LoginResponse> {
+  async refreshToken(): Promise<LoginResponse> {
     try {
-      const response = await api.post<LoginResponse>('/auth/refresh', {
-        refreshToken,
-      });
-
-      if (response.success && response.data) {
-        // 새 토큰 저장
-        await AsyncStorage.setItem('accessToken', response.data.accessToken);
-        await AsyncStorage.setItem('refreshToken', response.data.refreshToken);
-
-        return response.data;
+      const refreshToken = await AsyncStorage.getItem('refreshToken');
+      if (!refreshToken) {
+        throw new Error('Refresh token not found');
       }
 
-      throw new Error(response.message || '토큰 갱신에 실패했습니다.');
-    } catch (error) {
+      const response = await api.post<LoginResponse>(
+        '/auth/refresh',
+        {},
+        {
+          headers: {
+            'Authorization': `Bearer ${refreshToken}`
+          }
+        }
+      );
+
+      if (response) {
+        // 새 토큰 저장
+        await AsyncStorage.setItem('accessToken', response.tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', response.tokens.refreshToken);
+        console.log('[AuthService] Token refresh successful');
+
+        return response;
+      }
+
+      throw new Error('토큰 갱신에 실패했습니다.');
+    } catch (error: any) {
+      console.error('[AuthService] Token refresh error:', error);
       throw error;
     }
   }
@@ -215,6 +215,36 @@ class AuthService {
       return !!token;
     } catch (error) {
       return false;
+    }
+  }
+
+  /**
+   * 액세스 토큰 가져오기
+   */
+  async getAccessToken(): Promise<string | null> {
+    try {
+      return await AsyncStorage.getItem('accessToken');
+    } catch (error) {
+      console.error('[AuthService] Get access token error:', error);
+      return null;
+    }
+  }
+
+  /**
+   * 현재 사용자 정보 확인 (서버)
+   */
+  async me(): Promise<string> {
+    try {
+      const response = await api.get<{success: boolean; data: string; message: string}>('/auth/me');
+
+      if (response.success) {
+        return response.data;
+      }
+
+      throw new Error('사용자 정보를 가져올 수 없습니다.');
+    } catch (error: any) {
+      console.error('[AuthService] Me error:', error);
+      throw error;
     }
   }
 }
