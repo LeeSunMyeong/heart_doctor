@@ -12,8 +12,8 @@ import AuthNavigator from './AuthNavigator';
 import { HomeScreen } from '../screens/main/HomeScreen';
 import { ResultScreen } from '../screens/main/ResultScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
-import NotificationsScreen from '../components/screens/NotificationsScreen';
-import SettingsScreen from '../components/screens/SettingsScreen';
+// import NotificationsScreen from '../components/screens/NotificationsScreen'; // TODO: Create NotificationsScreen
+import { SettingsScreen } from '../screens/settings/SettingsScreen';
 import { PricingScreen } from '../screens/subscription/PricingScreen';
 import { PaymentScreen } from '../screens/subscription/PaymentScreen';
 import { PaymentHistoryScreen } from '../screens/subscription/PaymentHistoryScreen';
@@ -62,6 +62,7 @@ const RootNavigator = () => {
               animation: 'slide_from_bottom'
             }}
           />
+          {/* TODO: Create NotificationsScreen
           <Stack.Screen
             name="Notifications"
             component={NotificationsScreen}
@@ -70,6 +71,7 @@ const RootNavigator = () => {
               animation: 'slide_from_right'
             }}
           />
+          */}
           <Stack.Screen
             name="Settings"
             component={SettingsScreen}
