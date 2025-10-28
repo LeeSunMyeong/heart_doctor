@@ -61,23 +61,20 @@ class AuthService {
       const response = await api.post<LoginResponse>('/auth/login', credentials);
       console.log('[AuthService] Login response:', response);
 
-      if (response) {
+      if (response.success && response.data) {
         // 토큰 및 사용자 정보 저장
-        await AsyncStorage.setItem('accessToken', response.tokens.accessToken);
-        await AsyncStorage.setItem('refreshToken', response.tokens.refreshToken);
-        await AsyncStorage.setItem('user', JSON.stringify(response.user));
+        await AsyncStorage.setItem('accessToken', response.data.tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', response.data.tokens.refreshToken);
+        await AsyncStorage.setItem('user', JSON.stringify(response.data.user));
 
         console.log('[AuthService] Login successful, tokens saved');
-        return response;
+        return response.data;
       }
 
-      throw new Error('로그인에 실패했습니다.');
+      throw new Error(response.message || '로그인에 실패했습니다.');
     } catch (error: any) {
       console.error('[AuthService] Login error:', error);
-      if (error.response?.status === 401) {
-        throw new Error('휴대폰 번호 또는 비밀번호가 잘못되었습니다.');
-      }
-      throw new Error(error.message || '로그인에 실패했습니다.');
+      throw error;
     }
   }
 
@@ -93,7 +90,7 @@ class AuthService {
         throw new Error('비밀번호가 일치하지 않습니다.');
       }
 
-      const response = await api.post<{success: boolean; data: number; message: string}>(
+      const response = await api.post<number>(
         '/auth/register',
         userData
       );
@@ -107,10 +104,7 @@ class AuthService {
       throw new Error(response.message || '회원가입에 실패했습니다.');
     } catch (error: any) {
       console.error('[AuthService] Register error:', error);
-      if (error.response?.data?.message) {
-        throw new Error(error.response.data.message);
-      }
-      throw new Error(error.message || '회원가입에 실패했습니다.');
+      throw error;
     }
   }
 
@@ -120,12 +114,12 @@ class AuthService {
   async checkPhoneExists(phone: string): Promise<boolean> {
     try {
       console.log('[AuthService] Checking phone exists:', phone);
-      const response = await api.get<{success: boolean; data: boolean; message: string}>(
+      const response = await api.get<boolean>(
         `/auth/check-phone/${phone}`
       );
       console.log('[AuthService] Phone check response:', response);
 
-      if (response.success) {
+      if (response.success && response.data !== undefined) {
         return response.data;
       }
 
@@ -190,13 +184,13 @@ class AuthService {
         }
       );
 
-      if (response) {
+      if (response.success && response.data) {
         // 새 토큰 저장
-        await AsyncStorage.setItem('accessToken', response.tokens.accessToken);
-        await AsyncStorage.setItem('refreshToken', response.tokens.refreshToken);
+        await AsyncStorage.setItem('accessToken', response.data.tokens.accessToken);
+        await AsyncStorage.setItem('refreshToken', response.data.tokens.refreshToken);
         console.log('[AuthService] Token refresh successful');
 
-        return response;
+        return response.data;
       }
 
       throw new Error('토큰 갱신에 실패했습니다.');
@@ -235,9 +229,9 @@ class AuthService {
    */
   async me(): Promise<string> {
     try {
-      const response = await api.get<{success: boolean; data: string; message: string}>('/auth/me');
+      const response = await api.get<string>('/auth/me');
 
-      if (response.success) {
+      if (response.success && response.data) {
         return response.data;
       }
 
