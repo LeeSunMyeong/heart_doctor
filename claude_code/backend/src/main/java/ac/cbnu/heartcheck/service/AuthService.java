@@ -75,10 +75,14 @@ public class AuthService {
     }
 
     public Long register(UserRegistrationRequest request) {
-        log.info("Register attempt: phone={}, name={}, userId={}", request.getPhone(), request.getName(), request.getUserId());
+        log.info("Register attempt: phone={}, name={}, loginId={}", request.getPhone(), request.getName(), request.getUserId());
 
         if (userRepository.findByPhone(request.getPhone()).isPresent()) {
             throw new IllegalArgumentException("Phone number already registered");
+        }
+
+        if (userRepository.existsByLoginId(request.getUserId())) {
+            throw new IllegalArgumentException("Login ID already exists");
         }
 
         // Default userDob to 19900101 since we no longer collect age
@@ -87,6 +91,7 @@ public class AuthService {
         User user = User.builder()
             .userName(request.getName())
             .userDob(userDob)
+            .loginId(request.getUserId())
             .phone(request.getPhone())
             .password(passwordEncoder.encode(request.getPassword()))
             .role(User.Role.USER)
@@ -94,7 +99,7 @@ public class AuthService {
             .build();
 
         User savedUser = userRepository.save(user);
-        log.info("Registration successful: userId={}, phone={}", savedUser.getUserId(), savedUser.getPhone());
+        log.info("Registration successful: userId={}, loginId={}, phone={}", savedUser.getUserId(), savedUser.getLoginId(), savedUser.getPhone());
 
         return savedUser.getUserId();
     }

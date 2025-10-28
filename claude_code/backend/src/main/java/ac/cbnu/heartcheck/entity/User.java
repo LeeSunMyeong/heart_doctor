@@ -21,6 +21,7 @@ import java.util.List;
 @Entity
 @Table(name = "users", indexes = {
     @Index(name = "idx_user_phone", columnList = "phone"),
+    @Index(name = "idx_user_login_id", columnList = "login_id"),
     @Index(name = "idx_user_provider", columnList = "provider, provider_uid")
 })
 @Getter
@@ -44,6 +45,10 @@ public class User {
     @Size(min = 8, max = 8, message = "생년월일은 YYYYMMDD 형식으로 8자여야 합니다")
     @Column(name = "user_dob", length = 8, nullable = false)
     private String userDob; // YYYYMMDD 형식
+
+    @Size(max = 20, message = "로그인 아이디는 20자를 초과할 수 없습니다")
+    @Column(name = "login_id", length = 20, unique = true)
+    private String loginId; // 사용자가 입력한 로그인 아이디 (선택사항)
 
     @NotBlank(message = "휴대폰 번호는 필수입니다")
     @Size(max = 11, message = "휴대폰 번호는 11자를 초과할 수 없습니다")
