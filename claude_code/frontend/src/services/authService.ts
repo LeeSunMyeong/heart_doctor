@@ -8,13 +8,10 @@ export interface LoginRequest {
 }
 
 export interface RegisterRequest {
-  email: string;
+  name: string;
+  phone: string;
+  userId: string;
   password: string;
-  confirmPassword: string;
-  fullName: string;
-  phoneNumber: string;
-  age: number;
-  gender: 'MALE' | 'FEMALE' | 'OTHER';
 }
 
 export interface LoginResponse {
@@ -84,11 +81,6 @@ class AuthService {
   async register(userData: RegisterRequest): Promise<number> {
     try {
       console.log('[AuthService] Register request:', userData);
-
-      // 비밀번호 확인
-      if (userData.password !== userData.confirmPassword) {
-        throw new Error('비밀번호가 일치하지 않습니다.');
-      }
 
       const response = await api.post<number>(
         '/auth/register',

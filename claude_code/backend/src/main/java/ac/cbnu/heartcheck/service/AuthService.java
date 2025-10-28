@@ -75,24 +75,19 @@ public class AuthService {
     }
 
     public Long register(UserRegistrationRequest request) {
-        log.info("Register attempt: phone={}, name={}", request.getPhoneNumber(), request.getFullName());
+        log.info("Register attempt: phone={}, name={}, userId={}", request.getPhone(), request.getName(), request.getUserId());
 
-        if (!request.isPasswordMatching()) {
-            throw new IllegalArgumentException("Passwords do not match");
-        }
-
-        if (userRepository.findByPhone(request.getPhoneNumber().replaceAll("-", "")).isPresent()) {
+        if (userRepository.findByPhone(request.getPhone()).isPresent()) {
             throw new IllegalArgumentException("Phone number already registered");
         }
 
-        int currentYear = java.time.LocalDateTime.now().getYear();
-        int birthYear = currentYear - request.getAge();
-        String userDob = String.format("%d0101", birthYear);
+        // Default userDob to 19900101 since we no longer collect age
+        String userDob = "19900101";
 
         User user = User.builder()
-            .userName(request.getFullName())
+            .userName(request.getName())
             .userDob(userDob)
-            .phone(request.getPhoneNumber().replaceAll("-", ""))
+            .phone(request.getPhone())
             .password(passwordEncoder.encode(request.getPassword()))
             .role(User.Role.USER)
             .isActive(true)
