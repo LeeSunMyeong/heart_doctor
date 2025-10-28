@@ -3,6 +3,7 @@ package ac.cbnu.heartcheck.repository;
 import ac.cbnu.heartcheck.entity.Setting;
 import ac.cbnu.heartcheck.entity.User;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -26,7 +27,8 @@ public interface SettingRepository extends JpaRepository<Setting, Long> {
      * @param userId 사용자 ID
      * @return 사용자 설정
      */
-    Optional<Setting> findByUserId(Long userId);
+    @Query("SELECT s FROM Setting s WHERE s.user.userId = :userId")
+    Optional<Setting> findByUserId(@Param("userId") Long userId);
 
     /**
      * 사용자로 설정 조회
@@ -40,7 +42,8 @@ public interface SettingRepository extends JpaRepository<Setting, Long> {
      * @param userId 사용자 ID
      * @return 존재 여부
      */
-    boolean existsByUserId(Long userId);
+    @Query("SELECT COUNT(s) > 0 FROM Setting s WHERE s.user.userId = :userId")
+    boolean existsByUserId(@Param("userId") Long userId);
 
     /**
      * 푸시 알림 활성화된 사용자 설정 목록 조회
@@ -79,13 +82,6 @@ public interface SettingRepository extends JpaRepository<Setting, Long> {
     List<Setting> findByLanguage(@Param("language") Setting.Language language);
 
     /**
-     * 생체인증 활성화된 사용자 설정 목록 조회
-     * @return 생체인증 활성화 설정 목록
-     */
-    @Query("SELECT s FROM Setting s WHERE s.biometricAuth = true")
-    List<Setting> findByBiometricAuthEnabled();
-
-    /**
      * 특정 개인정보 보호 수준 사용자 설정 목록 조회
      * @param privacyLevel 개인정보 보호 수준
      * @return 특정 보호 수준 설정 목록
@@ -119,5 +115,7 @@ public interface SettingRepository extends JpaRepository<Setting, Long> {
      * 사용자 설정 삭제
      * @param userId 사용자 ID
      */
-    void deleteByUserId(Long userId);
+    @Modifying
+    @Query("DELETE FROM Setting s WHERE s.user.userId = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 }

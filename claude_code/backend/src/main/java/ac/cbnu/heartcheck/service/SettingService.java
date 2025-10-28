@@ -74,9 +74,6 @@ public class SettingService {
         }
 
         // 보안 설정 업데이트
-        if (updatedSetting.getBiometricAuth() != null) {
-            setting.setBiometricAuth(updatedSetting.getBiometricAuth());
-        }
         if (updatedSetting.getPrivacyLevel() != null) {
             validatePrivacyLevel(updatedSetting.getPrivacyLevel());
             setting.setPrivacyLevel(updatedSetting.getPrivacyLevel());
@@ -120,18 +117,6 @@ public class SettingService {
         log.info("다크모드 토글: userId={}", userId);
         Setting setting = getSettingByUserId(userId);
         setting.toggleDarkMode();
-        return settingRepository.save(setting);
-    }
-
-    /**
-     * 생체인증 토글
-     * @param userId 사용자 ID
-     * @return 업데이트된 설정
-     */
-    public Setting toggleBiometricAuth(Long userId) {
-        log.info("생체인증 토글: userId={}", userId);
-        Setting setting = getSettingByUserId(userId);
-        setting.toggleBiometricAuth();
         return settingRepository.save(setting);
     }
 
@@ -271,7 +256,6 @@ public class SettingService {
             .marketingNotification(false)
             .darkMode(false)
             .language("ko")
-            .biometricAuth(false)
             .privacyLevel(2)
             .sessionTimeout(30)
             .autoBackup(true)

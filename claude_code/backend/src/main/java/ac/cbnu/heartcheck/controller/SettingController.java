@@ -117,27 +117,6 @@ public class SettingController {
     }
 
     /**
-     * 생체인증 토글
-     * POST /api/v1/settings/{userId}/biometric-auth/toggle
-     *
-     * @param userId 사용자 ID
-     * @return 업데이트된 설정
-     */
-    @PostMapping("/{userId}/biometric-auth/toggle")
-    public ResponseEntity<ApiResponse<Setting>> toggleBiometricAuth(@PathVariable Long userId) {
-        log.info("생체인증 토글 요청: userId={}", userId);
-
-        try {
-            Setting setting = settingService.toggleBiometricAuth(userId);
-            return ResponseEntity.ok(ApiResponse.success(setting));
-        } catch (Exception e) {
-            log.error("생체인증 토글 실패: userId={}", userId, e);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(ApiResponse.error("생체인증 설정 실패: " + e.getMessage()));
-        }
-    }
-
-    /**
      * 자동 백업 토글
      * POST /api/v1/settings/{userId}/auto-backup/toggle
      *

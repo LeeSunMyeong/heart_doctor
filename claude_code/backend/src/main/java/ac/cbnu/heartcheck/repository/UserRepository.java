@@ -19,49 +19,44 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
     /**
-     * Find user by email
-     */
-    Optional<User> findByEmail(String email);
-
-    /**
-     * Find user by phone number
-     */
-    Optional<User> findByPhoneNumber(String phoneNumber);
-
-    /**
      * Find user by phone (for authentication)
      */
     Optional<User> findByPhone(String phone);
 
     /**
-     * Check if email exists
+     * Check if phone exists
      */
-    boolean existsByEmail(String email);
+    boolean existsByPhone(String phone);
 
     /**
-     * Check if phone number exists
+     * Find active users by phone
      */
-    boolean existsByPhoneNumber(String phoneNumber);
-
-    /**
-     * Find enabled users by email
-     */
-    @Query("SELECT u FROM User u WHERE u.email = :email AND u.enabled = true")
-    Optional<User> findByEmailAndEnabled(@Param("email") String email);
+    @Query("SELECT u FROM User u WHERE u.phone = :phone AND u.isActive = true")
+    Optional<User> findByPhoneAndActive(@Param("phone") String phone);
 
     /**
      * Count total active users
      */
-    @Query("SELECT COUNT(u) FROM User u WHERE u.enabled = true")
+    @Query("SELECT COUNT(u) FROM User u WHERE u.isActive = true")
     long countActiveUsers();
 
     /**
-     * Find user by name and phone number for email finding
+     * Find user by userName and phone for verification
      */
-    Optional<User> findByNameAndPhoneNumber(String name, String phoneNumber);
+    Optional<User> findByUserNameAndPhone(String userName, String phone);
 
     /**
-     * Check if name and phone number combination exists
+     * Check if userName and phone combination exists
      */
-    boolean existsByNameAndPhoneNumber(String name, String phoneNumber);
+    boolean existsByUserNameAndPhone(String userName, String phone);
+
+    /**
+     * Find user by provider and providerUid (SNS login)
+     */
+    Optional<User> findByProviderAndProviderUid(String provider, String providerUid);
+
+    /**
+     * Check if SNS user exists
+     */
+    boolean existsByProviderAndProviderUid(String provider, String providerUid);
 }

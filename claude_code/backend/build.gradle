@@ -38,6 +38,7 @@ dependencies {
 
     // Database
     runtimeOnly 'com.mysql:mysql-connector-j:8.0.33'
+    runtimeOnly 'com.h2database:h2'  // For dev profile
     implementation 'org.flywaydb:flyway-core'
     implementation 'org.flywaydb:flyway-mysql'
 

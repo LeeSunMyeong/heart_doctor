@@ -326,7 +326,7 @@ public class PaymentService {
      * @return 요금제별 결제 건수
      */
     public List<Object[]> getPaymentStatsByPlan() {
-        return paymentRepository.countByPlanType();
+        return paymentRepository.countByCostModelType();
     }
 
     /**

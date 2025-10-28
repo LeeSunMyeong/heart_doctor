@@ -36,35 +36,35 @@ public class UserService {
     }
 
     /**
-     * 이메일로 사용자 조회
+     * 전화번호로 사용자 조회
      */
     @Transactional(readOnly = true)
-    public Optional<User> findByEmail(String email) {
-        return userRepository.findByEmail(email);
+    public Optional<User> findByPhone(String phone) {
+        return userRepository.findByPhone(phone);
     }
 
     /**
-     * 활성화된 사용자만 이메일로 조회
+     * 활성화된 사용자만 전화번호로 조회
      */
     @Transactional(readOnly = true)
-    public Optional<User> findByEmailAndEnabled(String email) {
-        return userRepository.findByEmailAndEnabled(email);
-    }
-
-    /**
-     * 이메일 존재 여부 확인
-     */
-    @Transactional(readOnly = true)
-    public boolean existsByEmail(String email) {
-        return userRepository.existsByEmail(email);
+    public Optional<User> findByPhoneAndActive(String phone) {
+        return userRepository.findByPhoneAndActive(phone);
     }
 
     /**
      * 전화번호 존재 여부 확인
      */
     @Transactional(readOnly = true)
-    public boolean existsByPhoneNumber(String phoneNumber) {
-        return userRepository.existsByPhoneNumber(phoneNumber);
+    public boolean existsByPhone(String phone) {
+        return userRepository.existsByPhone(phone);
+    }
+
+    /**
+     * SNS 로그인 사용자 조회
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findBySocialLogin(String provider, String providerUid) {
+        return userRepository.findByProviderAndProviderUid(provider, providerUid);
     }
 
     /**

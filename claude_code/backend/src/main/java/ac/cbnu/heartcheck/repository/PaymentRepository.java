@@ -35,32 +35,32 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     Optional<Payment> findByTransactionId(String transactionId);
 
     /**
-     * Find payments by payment status
+     * Find payments by status
      */
-    List<Payment> findByPaymentStatus(Payment.PaymentStatus paymentStatus);
+    List<Payment> findByStatus(Payment.PaymentStatus status);
 
     /**
      * Find successful payments by user
      */
-    @Query("SELECT p FROM Payment p WHERE p.user = :user AND p.paymentStatus = 'COMPLETED' ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Payment p WHERE p.user = :user AND p.status = 'SUCCESS' ORDER BY p.createTime DESC")
     List<Payment> findSuccessfulPaymentsByUser(@Param("user") User user);
 
     /**
      * Calculate total revenue within date range
      */
-    @Query("SELECT SUM(p.amount) FROM Payment p WHERE p.paymentStatus = 'COMPLETED' AND p.createdAt BETWEEN :startDate AND :endDate")
+    @Query("SELECT SUM(p.costModel.cost) FROM Payment p WHERE p.status = 'SUCCESS' AND p.createTime BETWEEN :startDate AND :endDate")
     BigDecimal calculateRevenueByDateRange(@Param("startDate") LocalDateTime startDate,
                                          @Param("endDate") LocalDateTime endDate);
 
     /**
-     * Count payments by plan type
+     * Count payments by cost model type
      */
-    @Query("SELECT p.planType, COUNT(p) FROM Payment p WHERE p.paymentStatus = 'COMPLETED' GROUP BY p.planType")
-    List<Object[]> countByPlanType();
+    @Query("SELECT p.costModel.type, COUNT(p) FROM Payment p WHERE p.status = 'SUCCESS' GROUP BY p.costModel.type")
+    List<Object[]> countByCostModelType();
 
     /**
      * Find latest successful payment by user
      */
-    @Query("SELECT p FROM Payment p WHERE p.user = :user AND p.paymentStatus = 'COMPLETED' ORDER BY p.createdAt DESC")
+    @Query("SELECT p FROM Payment p WHERE p.user = :user AND p.status = 'SUCCESS' ORDER BY p.createTime DESC")
     List<Payment> findLatestSuccessfulPaymentByUser(@Param("user") User user, Pageable pageable);
 }

@@ -151,7 +151,9 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
      * 사용자 ID로 모든 알림 삭제
      * @param userId 사용자 ID
      */
-    void deleteByUserId(Long userId);
+    @Modifying
+    @Query("DELETE FROM Notification n WHERE n.user.userId = :userId")
+    void deleteByUserId(@Param("userId") Long userId);
 
     /**
      * 사용자의 알림 타입별 개수 조회
