@@ -211,7 +211,6 @@ CREATE TABLE settings (
     language VARCHAR(5) NOT NULL DEFAULT 'ko' COMMENT '언어 설정 (ko, en)',
     data_save_mode BOOLEAN NOT NULL DEFAULT FALSE COMMENT '데이터 절약 모드',
     auto_backup BOOLEAN NOT NULL DEFAULT TRUE COMMENT '자동 백업 설정',
-    biometric_auth BOOLEAN NOT NULL DEFAULT FALSE COMMENT '생체 인증 사용',
     session_timeout INT NOT NULL DEFAULT 30 COMMENT '세션 타임아웃 (분)',
     privacy_level INT NOT NULL DEFAULT 2 COMMENT '개인정보 보호 수준 (1:낮음, 2:보통, 3:높음)',
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '생성 시간',

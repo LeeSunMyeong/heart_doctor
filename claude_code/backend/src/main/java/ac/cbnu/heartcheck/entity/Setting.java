@@ -65,10 +65,6 @@ public class Setting {
     private Boolean autoBackup = true; // 자동 백업 설정
 
     @Builder.Default
-    @Column(name = "biometric_auth", nullable = false)
-    private Boolean biometricAuth = false; // 생체 인증 사용
-
-    @Builder.Default
     @Column(name = "session_timeout", nullable = false)
     private Integer sessionTimeout = 30; // 세션 타임아웃 (분)
 
@@ -188,7 +184,7 @@ public class Setting {
      * @return 보안 강화 여부
      */
     public boolean isSecurityEnhanced() {
-        return biometricAuth && privacyLevel >= PrivacyLevel.HIGH.getLevel() && sessionTimeout <= 15;
+        return privacyLevel >= PrivacyLevel.HIGH.getLevel() && sessionTimeout <= 15;
     }
 
     /**
@@ -211,13 +207,6 @@ public class Setting {
      */
     public void toggleDarkMode() {
         this.darkMode = !this.darkMode;
-    }
-
-    /**
-     * 생체 인증 토글
-     */
-    public void toggleBiometricAuth() {
-        this.biometricAuth = !this.biometricAuth;
     }
 
     /**
@@ -260,7 +249,6 @@ public class Setting {
         this.language = "ko";
         this.dataSaveMode = false;
         this.autoBackup = true;
-        this.biometricAuth = false;
         this.sessionTimeout = 30;
         this.privacyLevel = 2;
     }
@@ -269,7 +257,6 @@ public class Setting {
      * 보안 강화 모드 활성화
      */
     public void enableSecurityMode() {
-        this.biometricAuth = true;
         this.privacyLevel = PrivacyLevel.HIGH.getLevel();
         this.sessionTimeout = 15;
         this.autoBackup = true;
