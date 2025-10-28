@@ -1,0 +1,134 @@
+# ===================================
+# CBNU Heart Disease Test - .gitignore
+# ===================================
+
+# ===== OS Files =====
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# ===== IDE Files =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# ===== Backend (Spring Boot / Gradle) =====
+backend/build/
+backend/.gradle/
+backend/out/
+backend/bin/
+backend/target/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+*.tmp
+backend/application-local.properties
+backend/application-prod.properties
+
+# ===== Frontend (React Native / Node.js) =====
+frontend/node_modules/
+frontend/.expo/
+frontend/dist/
+frontend/build/
+frontend/.cache/
+frontend/*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+frontend/.env.local
+frontend/.env.production
+
+# React Native specific
+frontend/ios/Pods/
+frontend/ios/build/
+frontend/android/app/build/
+frontend/android/.gradle/
+frontend/android/local.properties
+frontend/.bundle/
+
+# ===== Readdy (Web Frontend) =====
+readdy/node_modules/
+readdy/dist/
+readdy/build/
+readdy/.cache/
+readdy/*.log
+readdy/.env.local
+
+# ===== Test Coverage =====
+coverage/
+*.lcov
+.nyc_output/
+__tests__/coverage/
+
+# ===== Environment Variables =====
+.env
+.env.local
+.env.production
+.env.test
+*.env
+
+# ===== Logs =====
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# ===== Temporary Files =====
+tmp/
+temp/
+*.tmp
+*.temp
+*.swp
+*.swo
+
+# ===== Documentation Build =====
+docs/.vitepress/dist/
+docs/.vitepress/cache/
+
+# ===== Backup Files =====
+backup_entities/
+frontend_backup/
+*.backup
+*.bak
+
+# ===== Database =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== Secrets & Credentials =====
+credentials.json
+secrets.yaml
+*.pem
+*.key
+*.p12
+*.jks
+
+# ===== Package Manager Locks (선택적) =====
+# package-lock.json을 커밋하려면 아래 주석 처리
+# package-lock.json
+# yarn.lock
+
+# ===== macOS =====
+.AppleDouble
+.LSOverride
+
+# ===== Linux =====
+*~
+
+# ===== Windows =====
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
