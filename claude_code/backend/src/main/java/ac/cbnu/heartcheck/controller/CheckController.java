@@ -1,8 +1,10 @@
 package ac.cbnu.heartcheck.controller;
 
+import ac.cbnu.heartcheck.dto.request.CheckRequest;
 import ac.cbnu.heartcheck.entity.Check;
 import ac.cbnu.heartcheck.entity.User;
 import ac.cbnu.heartcheck.service.CheckService;
+import ac.cbnu.heartcheck.service.UserDetailsServiceImpl.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +14,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -41,11 +44,15 @@ public class CheckController {
      * POST /api/checks
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createCheck(@Valid @RequestBody Check check) {
+    public ResponseEntity<Map<String, Object>> createCheck(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody CheckRequest request) {
         try {
-            log.info("Creating new check for user: {}", check.getUser().getUserId());
+            // JWT 토큰에서 userId 추출
+            Long userId = userDetails.getUser().getUserId();
+            log.info("Creating new check for user: {} (from JWT)", userId);
 
-            Check savedCheck = checkService.saveCheck(check);
+            Check savedCheck = checkService.saveCheck(request, userId);
             String riskLevel = checkService.assessRiskLevel(savedCheck);
             boolean medicalReviewRecommended = checkService.isRecommendMedicalReview(savedCheck);
 

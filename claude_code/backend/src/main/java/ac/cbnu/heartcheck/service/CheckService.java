@@ -1,8 +1,10 @@
 package ac.cbnu.heartcheck.service;
 
+import ac.cbnu.heartcheck.dto.request.CheckRequest;
 import ac.cbnu.heartcheck.entity.Check;
 import ac.cbnu.heartcheck.entity.User;
 import ac.cbnu.heartcheck.repository.CheckRepository;
+import ac.cbnu.heartcheck.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -31,9 +33,35 @@ import java.util.Optional;
 public class CheckService {
 
     private final CheckRepository checkRepository;
+    private final UserRepository userRepository;
 
     /**
-     * 검사 결과 저장
+     * 검사 결과 저장 (DTO 기반)
+     * @param request 검사 요청 DTO
+     * @param userId 사용자 ID (JWT에서 추출)
+     * @return 저장된 검사
+     */
+    @Transactional
+    public Check saveCheck(CheckRequest request, Long userId) {
+        log.info("Saving new check for user: {} (from JWT)", userId);
+
+        // User 조회
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        // DTO -> Entity 변환
+        Check check = convertToEntity(request, user);
+
+        validateCheckData(check);
+
+        Check savedCheck = checkRepository.save(check);
+
+        log.info("Check saved successfully with ID: {}", savedCheck.getId());
+        return savedCheck;
+    }
+
+    /**
+     * 검사 결과 저장 (기존 Entity 기반 - 하위 호환성)
      * @param check 검사 정보
      * @return 저장된 검사
      */
@@ -47,6 +75,44 @@ public class CheckService {
 
         log.info("Check saved successfully with ID: {}", savedCheck.getId());
         return savedCheck;
+    }
+
+    /**
+     * CheckRequest DTO를 Check Entity로 변환
+     * @param request 검사 요청 DTO
+     * @param user 사용자 Entity
+     * @return Check Entity
+     */
+    private Check convertToEntity(CheckRequest request, User user) {
+        return Check.builder()
+            .user(user)
+            // Basic Information
+            .gender(request.getGender())
+            .age(request.getAge())
+            .height(request.getHeight())
+            .weight(request.getWeight())
+            // Vital Signs
+            .temperature(request.getTemperature())
+            .breathing(request.getBreathing())
+            .pulse(request.getPulse())
+            // Symptoms
+            .chestPain(request.getChestPain() != null ? request.getChestPain() : false)
+            .flankPain(request.getFlankPain() != null ? request.getFlankPain() : false)
+            .footPain(request.getFootPain() != null ? request.getFootPain() : false)
+            .footEdema(request.getFootEdema() != null ? request.getFootEdema() : false)
+            .dyspnea(request.getDyspnea() != null ? request.getDyspnea() : false)
+            .syncope(request.getSyncope() != null ? request.getSyncope() : false)
+            .weakness(request.getWeakness() != null ? request.getWeakness() : false)
+            .vomitting(request.getVomitting() != null ? request.getVomitting() : false)
+            .palpitation(request.getPalpitation() != null ? request.getPalpitation() : false)
+            .dizziness(request.getDizziness() != null ? request.getDizziness() : false)
+            .chestTightness(request.getChestTightness() != null ? request.getChestTightness() : false)
+            .sweating(request.getSweating() != null ? request.getSweating() : false)
+            .headache(request.getHeadache() != null ? request.getHeadache() : false)
+            .nausea(request.getNausea() != null ? request.getNausea() : false)
+            .edema(request.getEdema() != null ? request.getEdema() : false)
+            .insomnia(request.getInsomnia() != null ? request.getInsomnia() : false)
+            .build();
     }
 
     /**

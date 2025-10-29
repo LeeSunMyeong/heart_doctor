@@ -3,7 +3,7 @@
  * 건강 검사 관련 API (Check + Prediction)
  */
 
-import apiClient, {getApiData} from '../client';
+import {api} from '../../services/api';
 import {
   CheckRequest,
   CheckResponse,
@@ -13,32 +13,18 @@ import {
 
 /**
  * 건강 검사 제출
- * Check 생성 + Prediction 자동 실행
+ * Check 생성 (Backend에서 자동으로 risk assessment 수행)
  */
 export const submitAssessment = async (
   assessmentData: CheckRequest,
-): Promise<{
-  check: CheckResponse;
-  prediction: PredictionResponse;
-}> => {
-  // 1. Check 생성
-  const checkResponse = await apiClient.post<ApiResponse<CheckResponse>>(
-    '/checks',
-    assessmentData,
-  );
+): Promise<CheckResponse> => {
+  const response = await api.post<CheckResponse>('/checks', assessmentData);
 
-  const check = getApiData(checkResponse);
+  if (!response.success || !response.data) {
+    throw new Error(response.error || '건강 검사 제출에 실패했습니다.');
+  }
 
-  // 2. Prediction 생성 (checkId 기반)
-  const predictionResponse = await apiClient.post<
-    ApiResponse<PredictionResponse>
-  >('/predictions', {
-    checkId: check.checkId,
-  });
-
-  const prediction = getApiData(predictionResponse);
-
-  return {check, prediction};
+  return response.data;
 };
 
 /**

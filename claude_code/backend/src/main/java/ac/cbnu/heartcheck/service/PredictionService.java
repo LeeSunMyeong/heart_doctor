@@ -1,9 +1,12 @@
 package ac.cbnu.heartcheck.service;
 
+import ac.cbnu.heartcheck.dto.request.PredictionRequest;
 import ac.cbnu.heartcheck.entity.Check;
 import ac.cbnu.heartcheck.entity.Prediction;
 import ac.cbnu.heartcheck.entity.User;
+import ac.cbnu.heartcheck.repository.CheckRepository;
 import ac.cbnu.heartcheck.repository.PredictionRepository;
+import ac.cbnu.heartcheck.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -12,10 +15,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Random;
 
 /**
  * Prediction Service
@@ -32,9 +37,47 @@ import java.util.Optional;
 public class PredictionService {
 
     private final PredictionRepository predictionRepository;
+    private final CheckRepository checkRepository;
+    private final UserRepository userRepository;
+    private final Random random = new Random();
 
     /**
-     * AI 진단 결과 저장
+     * AI 진단 결과 저장 (DTO 기반, Mock 데이터 생성)
+     * @param request 진단 요청 DTO
+     * @param userId 사용자 ID (JWT에서 추출)
+     * @return 저장된 진단 결과
+     */
+    @Transactional
+    public Prediction savePrediction(PredictionRequest request, Long userId) {
+        log.info("Creating mock prediction for user: {} (from JWT), checkId: {}", userId, request.getCheckId());
+
+        // User 조회
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new IllegalArgumentException("User not found: " + userId));
+
+        // Check 조회
+        Check check = checkRepository.findById(request.getCheckId())
+            .orElseThrow(() -> new IllegalArgumentException("Check not found: " + request.getCheckId()));
+
+        // Check의 user와 JWT user가 일치하는지 검증
+        if (!check.getUser().getUserId().equals(userId)) {
+            throw new IllegalArgumentException("Check does not belong to the authenticated user");
+        }
+
+        // Mock 데이터 생성
+        Prediction prediction = generateMockPrediction(user, check);
+
+        validatePredictionData(prediction);
+
+        Prediction savedPrediction = predictionRepository.save(prediction);
+
+        log.info("Mock prediction saved successfully with ID: {} diagnosis: {}",
+                savedPrediction.getId(), savedPrediction.getHighestProbabilityDiagnosis());
+        return savedPrediction;
+    }
+
+    /**
+     * AI 진단 결과 저장 (기존 Entity 기반 - 하위 호환성)
      * @param prediction 진단 결과
      * @return 저장된 진단 결과
      */
@@ -49,6 +92,89 @@ public class PredictionService {
 
         log.info("Prediction saved successfully with ID: {}", savedPrediction.getId());
         return savedPrediction;
+    }
+
+    /**
+     * Mock 진단 데이터 생성
+     * 증상 개수에 따라 질환 확률을 조정
+     * @param user 사용자
+     * @param check 검사 데이터
+     * @return Mock Prediction
+     */
+    private Prediction generateMockPrediction(User user, Check check) {
+        int symptomCount = check.getSymptomCount();
+
+        // 증상 개수에 따라 정상 vs 질환 확률 결정
+        BigDecimal normalProb;
+
+        if (symptomCount <= 2) {
+            // 증상 적음 -> 정상 확률 높음 (60-80%)
+            normalProb = BigDecimal.valueOf(60 + random.nextInt(21)).setScale(2, RoundingMode.HALF_UP);
+        } else if (symptomCount <= 5) {
+            // 증상 중간 -> 정상 확률 중간 (40-60%)
+            normalProb = BigDecimal.valueOf(40 + random.nextInt(21)).setScale(2, RoundingMode.HALF_UP);
+        } else {
+            // 증상 많음 -> 정상 확률 낮음 (10-40%)
+            normalProb = BigDecimal.valueOf(10 + random.nextInt(31)).setScale(2, RoundingMode.HALF_UP);
+        }
+
+        // 나머지 확률을 5개 질환에 분배
+        BigDecimal remainingProb = BigDecimal.valueOf(100).subtract(normalProb);
+
+        // 각 질환에 무작위로 확률 분배
+        BigDecimal angina = randomProbability(remainingProb, 0.25);
+        BigDecimal mi = randomProbability(remainingProb, 0.20);
+        BigDecimal hf = randomProbability(remainingProb, 0.20);
+        BigDecimal af = randomProbability(remainingProb, 0.20);
+        BigDecimal other = remainingProb.subtract(angina).subtract(mi).subtract(hf).subtract(af);
+
+        // 합계가 정확히 100이 되도록 조정
+        BigDecimal total = normalProb.add(angina).add(mi).add(hf).add(af).add(other);
+        BigDecimal adjustment = BigDecimal.valueOf(100).subtract(total);
+        normalProb = normalProb.add(adjustment);
+
+        String comment = generateComment(symptomCount);
+
+        return Prediction.builder()
+                .user(user)
+                .check(check)
+                .angina(angina)
+                .mi(mi)
+                .hf(hf)
+                .af(af)
+                .other(other)
+                .normal(normalProb)
+                .comment(comment)
+                .build();
+    }
+
+    /**
+     * 무작위 확률 생성
+     * @param maxProb 최대 확률
+     * @param ratio 비율
+     * @return 생성된 확률
+     */
+    private BigDecimal randomProbability(BigDecimal maxProb, double ratio) {
+        double max = maxProb.doubleValue() * ratio;
+        double value = random.nextDouble() * max;
+        return BigDecimal.valueOf(value).setScale(2, RoundingMode.HALF_UP);
+    }
+
+    /**
+     * 증상 개수에 따른 코멘트 생성
+     * @param symptomCount 증상 개수
+     * @return 코멘트
+     */
+    private String generateComment(int symptomCount) {
+        if (symptomCount <= 2) {
+            return "정상 범위입니다. 정기적인 건강 검진을 권장합니다.";
+        } else if (symptomCount <= 5) {
+            return "일부 증상이 관찰됩니다. 지속적인 관찰이 필요합니다.";
+        } else if (symptomCount <= 8) {
+            return "다수의 증상이 관찰됩니다. 의료진 상담을 권장합니다.";
+        } else {
+            return "심각한 증상이 관찰됩니다. 즉시 의료진 검토가 필요합니다.";
+        }
     }
 
     /**

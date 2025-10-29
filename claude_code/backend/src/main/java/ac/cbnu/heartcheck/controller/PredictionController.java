@@ -1,9 +1,11 @@
 package ac.cbnu.heartcheck.controller;
 
+import ac.cbnu.heartcheck.dto.request.PredictionRequest;
 import ac.cbnu.heartcheck.entity.Check;
 import ac.cbnu.heartcheck.entity.Prediction;
 import ac.cbnu.heartcheck.entity.User;
 import ac.cbnu.heartcheck.service.PredictionService;
+import ac.cbnu.heartcheck.service.UserDetailsServiceImpl.CustomUserDetails;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,6 +15,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -39,16 +42,20 @@ public class PredictionController {
     private final PredictionService predictionService;
 
     /**
-     * AI 진단 결과 저장
+     * AI 진단 결과 저장 (Mock 데이터 생성)
      * POST /api/predictions
+     * User data is extracted from JWT token via @AuthenticationPrincipal
      */
     @PostMapping
-    public ResponseEntity<Map<String, Object>> createPrediction(@Valid @RequestBody Prediction prediction) {
+    public ResponseEntity<Map<String, Object>> createPrediction(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+            @Valid @RequestBody PredictionRequest request) {
         try {
-            log.info("Creating new prediction for user: {} check: {}",
-                    prediction.getUser().getUserId(), prediction.getCheck().getId());
+            // JWT 토큰에서 userId 추출
+            Long userId = userDetails.getUser().getUserId();
+            log.info("Creating new prediction for user: {} (from JWT), checkId: {}", userId, request.getCheckId());
 
-            Prediction savedPrediction = predictionService.savePrediction(prediction);
+            Prediction savedPrediction = predictionService.savePrediction(request, userId);
             String riskLevel = predictionService.assessRiskLevel(savedPrediction);
             boolean medicalReviewRecommended = predictionService.isRecommendMedicalReview(savedPrediction);
             String alertMessage = predictionService.generateAlertMessage(savedPrediction);
@@ -62,9 +69,18 @@ public class PredictionController {
                     "diagnosis", savedPrediction.getHighestProbabilityDiagnosis(),
                     "diagnosisKorean", savedPrediction.getDiagnosisKoreanName(),
                     "highestProbability", savedPrediction.getHighestProbability(),
+                    "probabilities", Map.of(
+                        "normal", savedPrediction.getNormal(),
+                        "angina", savedPrediction.getAngina(),
+                        "mi", savedPrediction.getMi(),
+                        "hf", savedPrediction.getHf(),
+                        "af", savedPrediction.getAf(),
+                        "other", savedPrediction.getOther()
+                    ),
                     "riskLevel", riskLevel,
                     "medicalReviewRecommended", medicalReviewRecommended,
-                    "alertMessage", alertMessage
+                    "alertMessage", alertMessage,
+                    "comment", savedPrediction.getComment()
                 )
             );
 

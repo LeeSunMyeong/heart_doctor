@@ -7,11 +7,14 @@ import {
   TextInput as RNTextInput,
   TouchableOpacity,
   Modal,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {colors, typography, spacing} from '../../styles';
 import {AppHeader} from '../../components/common/AppHeader';
+import {submitCheck} from '../../services/checkService';
 
 interface AssessmentData {
   gender: string;
@@ -56,6 +59,7 @@ const initialData: AssessmentData = {
 export const HomeScreen = ({navigation}: any) => {
   const [data, setData] = useState<AssessmentData>(initialData);
   const [showPulseModal, setShowPulseModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [pulseTimer, setPulseTimer] = useState({
     isRunning: false,
     seconds: 60,
@@ -81,11 +85,37 @@ export const HomeScreen = ({navigation}: any) => {
     return Object.values(data).every(value => value.trim() !== '');
   };
 
-  const handleSubmit = () => {
-    if (isFormValid()) {
-      const bmi = calculateBMI();
-      console.log('검사 완료:', {...data, bmi});
-      navigation.navigate('Result', {assessmentData: {...data, bmi}});
+  const handleSubmit = async () => {
+    if (!isFormValid()) {
+      Alert.alert('알림', '모든 항목을 입력해주세요.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      console.log('[HomeScreen] 검사 제출 시작:', data);
+
+      // API 호출
+      const response = await submitCheck(data);
+
+      console.log('[HomeScreen] 검사 제출 성공:', response);
+
+      // 성공 시 결과 화면으로 이동
+      navigation.navigate('Result', {
+        checkData: response,
+        assessmentData: data,
+      });
+    } catch (error: any) {
+      console.error('[HomeScreen] 검사 제출 실패:', error);
+
+      // 에러 메시지 표시
+      Alert.alert(
+        '오류',
+        error?.message || '건강 검사 제출에 실패했습니다. 다시 시도해주세요.',
+      );
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -303,12 +333,16 @@ export const HomeScreen = ({navigation}: any) => {
           {/* 검사 완료 버튼 */}
           <TouchableOpacity
             onPress={handleSubmit}
-            disabled={!isFormValid()}
+            disabled={!isFormValid() || isSubmitting}
             style={[
               styles.submitButton,
-              !isFormValid() && styles.submitButtonDisabled,
+              (!isFormValid() || isSubmitting) && styles.submitButtonDisabled,
             ]}>
-            <Text style={styles.submitButtonText}>분석하다</Text>
+            {isSubmitting ? (
+              <ActivityIndicator color={colors.background} size="small" />
+            ) : (
+              <Text style={styles.submitButtonText}>분석하다</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>

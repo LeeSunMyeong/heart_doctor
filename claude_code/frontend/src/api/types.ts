@@ -69,61 +69,106 @@ export interface PasswordResetRequest {
 
 /**
  * Assessment API Types
+ * Updated to match backend CheckRequest DTO
+ * User data is extracted from JWT token via @AuthenticationPrincipal
  */
 export interface CheckRequest {
   // Basic Information
+  gender: boolean; // false:남, true:여
   age: number;
-  sex: 'M' | 'F';
+  height: number; // cm
+  weight: number; // kg
 
   // Vital Signs
-  restingBP: number;
-  cholesterol: number;
-  fastingBS: number;
-  maxHR: number;
+  temperature: string; // "0":보통, "1":낮음, "2":높음
+  breathing: string; // "0":보통, "1":낮음, "2":높음
+  pulse: number; // 30~220 bpm
 
-  // Heart Metrics
-  chestPainType: 0 | 1 | 2 | 3;
-  restingECG: 0 | 1 | 2;
-  exerciseAngina: boolean;
-  oldpeak: number;
-  stSlope: 0 | 1 | 2;
+  // 16 Symptoms (boolean)
+  chestPain?: boolean; // Q1. 가슴 통증
+  flankPain?: boolean; // Q2. 옆구리 통증
+  footPain?: boolean; // Q3. 발 통증
+  footEdema?: boolean; // Q4. 발 부종
+  dyspnea?: boolean; // Q5. 호흡곤란
+  syncope?: boolean; // Q6. 실신
+  weakness?: boolean; // Q7. 피로감
+  vomitting?: boolean; // Q8. 구토
+  palpitation?: boolean; // Q9. 심장 두근거림
+  dizziness?: boolean; // Q10. 어지러움
+  chestTightness?: boolean; // Q11. 흉부 답답함
+  sweating?: boolean; // Q12. 식은땀
+  headache?: boolean; // Q13. 두통
+  nausea?: boolean; // Q14. 메스꺼움
+  edema?: boolean; // Q15. 부종
+  insomnia?: boolean; // Q16. 수면장애
 }
 
 export interface CheckResponse {
   checkId: number;
   userId: number;
-  // Check data fields
+  assessmentTime: string;
+
+  // Basic Information
+  gender: boolean;
   age: number;
-  sex: string;
-  restingBP: number;
-  cholesterol: number;
-  fastingBS: number;
-  maxHR: number;
-  chestPainType: number;
-  restingECG: number;
-  exerciseAngina: boolean;
-  oldpeak: number;
-  stSlope: number;
-  createdAt: string;
-  updatedAt: string;
+  height: number;
+  weight: number;
+  bmi: number;
+
+  // Vital Signs
+  temperature: string;
+  breathing: string;
+  pulse: number;
+
+  // Symptoms
+  chestPain: boolean;
+  flankPain: boolean;
+  footPain: boolean;
+  footEdema: boolean;
+  dyspnea: boolean;
+  syncope: boolean;
+  weakness: boolean;
+  vomitting: boolean;
+  palpitation: boolean;
+  dizziness: boolean;
+  chestTightness: boolean;
+  sweating: boolean;
+  headache: boolean;
+  nausea: boolean;
+  edema: boolean;
+  insomnia: boolean;
+
+  // Additional info
+  symptomCount: number;
+  riskLevel: string;
+}
+
+/**
+ * Prediction Request DTO
+ * User data is extracted from JWT token on backend via @AuthenticationPrincipal
+ */
+export interface PredictionRequest {
+  checkId: number;
 }
 
 export interface PredictionResponse {
   predictionId: number;
-  checkId: number;
-  userId: number;
-  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
-  confidence: number;
-  predictions: {
-    normal?: number;
-    angina?: number;
-    myocardialInfarction?: number;
-    arrhythmia?: number;
-    heartFailure?: number;
-    valvularDisease?: number;
+  predictTime: string;
+  diagnosis: 'NORMAL' | 'ANGINA' | 'MYOCARDIAL_INFARCTION' | 'HEART_FAILURE' | 'ATRIAL_FIBRILLATION' | 'OTHER';
+  diagnosisKorean: string;
+  highestProbability: number;
+  probabilities: {
+    normal: number;
+    angina: number;
+    mi: number;
+    hf: number;
+    af: number;
+    other: number;
   };
-  recommendations: string[];
-  createdAt: string;
+  riskLevel: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
+  medicalReviewRecommended: boolean;
+  alertMessage: string;
+  comment: string;
 }
 
 /**
