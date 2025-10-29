@@ -21,11 +21,11 @@ export interface LoginResponse {
 
 export interface UserInfo {
   userId: number;
-  email: string;
+  email?: string;
   name: string;
   profileImageUrl?: string;
-  userType: string;
-  subscriptionStatus: string;
+  userType?: string;
+  subscriptionStatus?: string;
   remainingFreeTests?: number;
   dailyTestLimit?: number;
   subscriptionExpiry?: string;
@@ -71,7 +71,11 @@ class AuthService {
       throw new Error(response.message || '로그인에 실패했습니다.');
     } catch (error: any) {
       console.error('[AuthService] Login error:', error);
-      throw error;
+      // 더 구체적인 에러 메시지 제공
+      if (error.message) {
+        throw new Error(error.message);
+      }
+      throw new Error('로그인에 실패했습니다. 다시 시도해주세요.');
     }
   }
 

@@ -62,7 +62,9 @@ apiClient.interceptors.response.use(
           refreshToken,
         });
 
-        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+        // Backend returns ApiResponse<LoginResponse> structure
+        const loginResponse = response.data.data;
+        const { accessToken, refreshToken: newRefreshToken } = loginResponse.tokens;
 
         // 새 토큰 저장
         await AsyncStorage.setItem('accessToken', accessToken);
@@ -147,23 +149,31 @@ class API {
 
   // 에러 처리
   private handleError(error: any): Error {
+    console.log('[API] Error occurred:', error);
+
     if (axios.isAxiosError(error)) {
       const axiosError = error as AxiosError<ApiResponse>;
 
       if (axiosError.response) {
         // 서버 응답 에러
-        const message = axiosError.response.data?.error ||
-                       axiosError.response.data?.message ||
-                       '서버 오류가 발생했습니다.';
+        console.log('[API] Server error response:', axiosError.response.data);
+        console.log('[API] Status code:', axiosError.response.status);
+
+        const errorData = axiosError.response.data;
+        const message = errorData?.error || errorData?.message || '서버 오류가 발생했습니다.';
+
+        console.log('[API] Error message:', message);
         return new Error(message);
       } else if (axiosError.request) {
         // 요청은 보냈지만 응답을 받지 못함
+        console.log('[API] No response received from server');
         return new Error('서버에 연결할 수 없습니다. 네트워크를 확인해주세요.');
       }
     }
 
     // 기타 에러
-    return new Error('알 수 없는 오류가 발생했습니다.');
+    console.log('[API] Unknown error:', error);
+    return new Error(error.message || '알 수 없는 오류가 발생했습니다.');
   }
 }
 

@@ -15,34 +15,44 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { authService } from '../../services/authService';
+import { useAuthStore } from '../../store/authStore';
 
 type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   FindAccount: undefined;
-  Home: undefined;
 };
 
 type LoginScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Login'>;
 
 export const LoginScreen = () => {
   const navigation = useNavigation<LoginScreenNavigationProp>();
+  const { setUser } = useAuthStore();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
+    console.log('[LoginScreen] handleLogin called, phone:', phone, 'password length:', password.length);
+
     if (!phone || !password) {
+      console.log('[LoginScreen] Validation failed - phone or password empty');
       Alert.alert('입력 오류', '휴대폰 번호와 비밀번호를 모두 입력해주세요.');
       return;
     }
 
+    console.log('[LoginScreen] Starting login...');
     setLoading(true);
     try {
       const response = await authService.login({ phone, password });
       console.log('[LoginScreen] Login successful:', response.user);
-      navigation.navigate('Home');
+
+      // Update authStore to trigger navigation
+      console.log('[LoginScreen] Updating auth state with user:', response.user);
+      setUser(response.user);
+      console.log('[LoginScreen] Auth state updated - navigation should happen now');
     } catch (error: any) {
+      console.log('[LoginScreen] Login error:', error);
       Alert.alert('로그인 실패', error.message || '로그인에 실패했습니다.');
     } finally {
       setLoading(false);

@@ -2,11 +2,11 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 
-// Import screens (placeholders for now)
-import ProfileScreen from '../../components/screens/ProfileScreen';
-import SettingsScreen from '../../components/screens/SettingsScreen';
-import NotificationsScreen from '../../components/screens/NotificationsScreen';
-import NotificationDetailScreen from '../../components/screens/NotificationDetailScreen';
+// Import screens
+import ProfileScreen from '../../screens/profile/ProfileScreen';
+import { SettingsScreen } from '../../screens/settings/SettingsScreen';
+import NotificationsScreen from '../../screens/profile/NotificationsScreen';
+import NotificationDetailScreen from '../../screens/profile/NotificationDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

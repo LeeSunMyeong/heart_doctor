@@ -31,17 +31,31 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         try {
-            log.info("Login attempt: phone={}", request.getPhone());
+            String identifier = request.getPhone(); // phone 필드가 이제 identifier 역할
+            log.info("Login attempt: identifier={}", identifier);
+
+            // identifier가 휴대폰 번호인지 로그인 ID인지 판단
+            boolean isPhone = identifier.matches("^01[0-9]{9}$");
+            String usernameForAuth = identifier; // Spring Security에 전달할 username
+
+            log.debug("Identifier type: {}", isPhone ? "phone" : "loginId");
 
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
-                    request.getPhone(),
+                    usernameForAuth,
                     request.getPassword()
                 )
             );
 
-            User user = userRepository.findByPhone(request.getPhone())
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            // identifier 타입에 따라 사용자 조회
+            User user;
+            if (isPhone) {
+                user = userRepository.findByPhone(identifier)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            } else {
+                user = userRepository.findByLoginId(identifier)
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+            }
 
             if (!user.isActive()) {
                 throw new BadCredentialsException("Account is disabled");
@@ -53,12 +67,20 @@ public class AuthService {
             String accessToken = jwtUtil.generateTokenForUser(user);
             String refreshToken = jwtUtil.generateRefreshTokenForUser(user);
 
-            log.info("Login successful: userId={}, phone={}", user.getUserId(), user.getPhone());
+            log.info("Login successful: userId={}, loginId={}, phone={}",
+                user.getUserId(), user.getLoginId(), user.getPhone());
 
             return LoginResponse.builder()
                 .user(LoginResponse.UserInfo.builder()
                     .userId(user.getUserId())
                     .name(user.getUserName())
+                    .email(null) // User 엔티티에 email 필드 없음 (phone 사용)
+                    .profileImageUrl(null)
+                    .userType(null)
+                    .subscriptionStatus(null)
+                    .remainingFreeTests(null)
+                    .dailyTestLimit(null)
+                    .subscriptionExpiry(null)
                     .build())
                 .tokens(LoginResponse.TokenInfo.builder()
                     .accessToken(accessToken)
@@ -69,8 +91,8 @@ public class AuthService {
                 .build();
 
         } catch (AuthenticationException e) {
-            log.error("Login failed: phone={}, reason={}", request.getPhone(), e.getMessage());
-            throw new BadCredentialsException("Invalid phone or password");
+            log.error("Login failed: identifier={}, reason={}", request.getPhone(), e.getMessage());
+            throw new BadCredentialsException("Invalid credentials");
         }
     }
 

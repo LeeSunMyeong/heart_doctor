@@ -2,10 +2,10 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 
-// Import screens (placeholders for now)
-import SubscriptionScreen from '../../components/screens/SubscriptionScreen';
-import SubscriptionPlansScreen from '../../components/screens/SubscriptionPlansScreen';
-import PaymentScreen from '../../components/screens/PaymentScreen';
+// Import screens
+import SubscriptionScreen from '../../screens/subscription/SubscriptionScreen';
+import SubscriptionPlansScreen from '../../screens/subscription/SubscriptionPlansScreen';
+import { PaymentScreen } from '../../screens/subscription/PaymentScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 

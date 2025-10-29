@@ -4,8 +4,9 @@ import { RootStackParamList } from '../../types';
 
 // Import screens
 import { HomeScreen } from '../../screens/main/HomeScreen';
-import CheckTestScreen from '../../components/screens/CheckTestScreen';
-import CheckResultScreen from '../../components/screens/CheckResultScreen';
+// TODO: Create these screens
+// import CheckTestScreen from '../../components/screens/CheckTestScreen';
+// import CheckResultScreen from '../../components/screens/CheckResultScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -28,6 +29,7 @@ const HomeStackNavigator = () => {
         component={HomeScreen}
         options={{ title: '홈' }}
       />
+      {/* TODO: Add these screens when they are created
       <Stack.Screen
         name="CheckTest"
         component={CheckTestScreen}
@@ -38,6 +40,7 @@ const HomeStackNavigator = () => {
         component={CheckResultScreen}
         options={{ title: '검사 결과' }}
       />
+      */}
     </Stack.Navigator>
   );
 };

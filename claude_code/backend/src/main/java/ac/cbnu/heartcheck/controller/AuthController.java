@@ -1,6 +1,7 @@
 package ac.cbnu.heartcheck.controller;
 
 import ac.cbnu.heartcheck.dto.request.LoginRequest;
+import ac.cbnu.heartcheck.dto.request.RefreshTokenRequest;
 import ac.cbnu.heartcheck.dto.request.UserRegistrationRequest;
 import ac.cbnu.heartcheck.dto.response.ApiResponse;
 import ac.cbnu.heartcheck.dto.response.LoginResponse;
@@ -28,13 +29,14 @@ public class AuthController {
 
     @PostMapping("/login")
     @Operation(summary = "Login", description = "Login with phone and password")
-    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+    public ResponseEntity<ApiResponse<LoginResponse>> login(@Valid @RequestBody LoginRequest request) {
         try {
             LoginResponse response = authService.login(request);
-            return ResponseEntity.ok(response);
+            return ResponseEntity.ok(ApiResponse.success(response, "Login successful"));
         } catch (BadCredentialsException e) {
             log.error("Login failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Invalid credentials"));
         }
     }
 
@@ -54,17 +56,14 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Refresh token", description = "Get new access token with refresh token")
-    public ResponseEntity<LoginResponse> refreshToken(@RequestHeader("Authorization") String refreshToken) {
+    public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(@RequestBody RefreshTokenRequest request) {
         try {
-            if (refreshToken.startsWith("Bearer ")) {
-                refreshToken = refreshToken.substring(7);
-            }
-
-            LoginResponse response = authService.refreshToken(refreshToken);
-            return ResponseEntity.ok(response);
+            LoginResponse response = authService.refreshToken(request.getRefreshToken());
+            return ResponseEntity.ok(ApiResponse.success(response, "Token refreshed successfully"));
         } catch (BadCredentialsException e) {
             log.error("Token refresh failed: {}", e.getMessage());
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error("Invalid refresh token"));
         }
     }
 

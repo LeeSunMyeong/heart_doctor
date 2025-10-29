@@ -17,9 +17,10 @@ import java.util.Collections;
 
 /**
  * UserDetailsService implementation for Spring Security authentication
+ * Supports authentication with both phone number and loginId
  *
  * @author CBNU Development Team
- * @version 1.0.0
+ * @version 1.1.0
  * @since 2024
  */
 @Service
@@ -31,20 +32,36 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final UserRepository userRepository;
 
     @Override
-    public UserDetails loadUserByUsername(String phone) throws UsernameNotFoundException {
-        log.debug("Loading user by phone: {}", phone);
+    public UserDetails loadUserByUsername(String identifier) throws UsernameNotFoundException {
+        log.debug("Loading user by identifier: {}", identifier);
 
-        User user = userRepository.findByPhone(phone)
+        // identifier가 휴대폰 번호인지 로그인 ID인지 판단
+        boolean isPhone = identifier.matches("^01[0-9]{9}$");
+
+        User user;
+        if (isPhone) {
+            log.debug("Identifier is phone number");
+            user = userRepository.findByPhone(identifier)
                 .orElseThrow(() -> {
-                    log.warn("User not found: {}", phone);
-                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + phone);
+                    log.warn("User not found by phone: {}", identifier);
+                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + identifier);
                 });
-
-        if (!user.isActive()) {
-            throw new UsernameNotFoundException("비활성화된 계정입니다: " + phone);
+        } else {
+            log.debug("Identifier is loginId");
+            user = userRepository.findByLoginId(identifier)
+                .orElseThrow(() -> {
+                    log.warn("User not found by loginId: {}", identifier);
+                    return new UsernameNotFoundException("사용자를 찾을 수 없습니다: " + identifier);
+                });
         }
 
-        log.debug("User loaded successfully: {}", phone);
+        if (!user.isActive()) {
+            throw new UsernameNotFoundException("비활성화된 계정입니다: " + identifier);
+        }
+
+        log.debug("User loaded successfully: userId={}, phone={}, loginId={}",
+            user.getUserId(), user.getPhone(), user.getLoginId());
+
         return new CustomUserDetails(user);
     }
 

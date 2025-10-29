@@ -2,10 +2,10 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types';
 
-// Import screens (placeholders for now)
-import HealthScreen from '../../components/screens/HealthScreen';
-import HealthHistoryScreen from '../../components/screens/HealthHistoryScreen';
-import HealthDetailScreen from '../../components/screens/HealthDetailScreen';
+// Import screens
+import HealthScreen from '../../screens/main/HealthScreen';
+import HealthHistoryScreen from '../../screens/main/HealthHistoryScreen';
+import HealthDetailScreen from '../../screens/main/HealthDetailScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
