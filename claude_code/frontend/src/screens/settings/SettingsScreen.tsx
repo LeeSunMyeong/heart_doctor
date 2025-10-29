@@ -1,359 +1,236 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {useTranslation} from 'react-i18next';
-import {Container} from '../../components/ui/Container';
-import {Card} from '../../components/ui/Card';
-import {Button} from '../../components/ui/Button';
-import {colors, typography, spacing} from '../../theme';
-import {useAuthStore} from '../../store/authStore';
-import {useSettingsStore} from '../../store/settingsStore';
-import type {SettingsMenuItem} from '../../types';
+import Icon from 'react-native-vector-icons/Ionicons';
+import {colors, typography, spacing} from '../../styles';
+import {AppHeader} from '../../components/common/AppHeader';
 
-type SettingsScreenNavigationProp = NativeStackNavigationProp<any>;
+interface SettingItem {
+  id: string;
+  icon: string;
+  iconBg: string;
+  label: string;
+  value: string;
+  screen?: string;
+}
 
-export const SettingsScreen: React.FC = () => {
-  const {t} = useTranslation();
-  const navigation = useNavigation<SettingsScreenNavigationProp>();
-  const {user, logout} = useAuthStore();
-  const {settings, setSettings} = useSettingsStore();
+export const SettingsScreen = () => {
+  const navigation = useNavigation();
 
-  // Initialize mock settings
-  useEffect(() => {
-    if (!settings) {
-      const mockSettings = {
-        id: 1,
-        user: user!,
-        pushNotification: true,
-        emailNotification: true,
-        marketingNotification: false,
-        darkMode: false,
-        language: 'ko',
-        privacyLevel: 2,
-        sessionTimeout: 30,
-        autoBackup: true,
-        dataSaveMode: false,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setSettings(mockSettings);
-    }
-  }, [settings, setSettings, user]);
-
-  const handleLogout = () => {
-    Alert.alert(
-      t('auth.logout'),
-      t('settings.logoutConfirm'),
-      [
-        {
-          text: t('common.cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('common.confirm'),
-          onPress: () => {
-            logout();
-            // Navigate to login screen
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'Login'}],
-            });
-          },
-          style: 'destructive',
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const appMenuItems: SettingsMenuItem[] = [
-    {
-      id: 'theme',
-      title: t('settings.theme'),
-      subtitle: settings?.darkMode
-        ? t('settings.themeOptions.dark')
-        : t('settings.themeOptions.light'),
-      screen: 'ThemeSettings',
-      showArrow: true,
-    },
+  const environmentSettings: SettingItem[] = [
     {
       id: 'language',
-      title: t('settings.language'),
-      subtitle:
-        settings?.language === 'ko'
-          ? t('settings.languageOptions.korean')
-          : t('settings.languageOptions.english'),
+      icon: 'globe-outline',
+      iconBg: '#C8E6C9',
+      label: '언어 설정',
+      value: '한국어',
       screen: 'LanguageSettings',
-      showArrow: true,
-    },
-    {
-      id: 'notifications',
-      title: t('settings.notifications'),
-      subtitle: t('settings.notificationsDesc'),
-      screen: 'NotificationSettings',
-      showArrow: true,
     },
     {
       id: 'inputMethod',
-      title: t('settings.inputMethod'),
-      subtitle: t('settings.inputMethodDesc'),
+      icon: 'grid-outline',
+      iconBg: '#E1BEE7',
+      label: '입력 방식',
+      value: '텍스트',
       screen: 'InputMethodSettings',
-      showArrow: true,
     },
     {
-      id: 'usageLimit',
-      title: t('settings.usageLimit'),
-      subtitle: t('settings.usageLimitDesc'),
-      screen: 'UsageLimit',
-      showArrow: true,
+      id: 'theme',
+      icon: 'color-palette-outline',
+      iconBg: '#BBDEFB',
+      label: '테마 설정',
+      value: '라이트',
+      screen: 'ThemeSettings',
+    },
+    {
+      id: 'notification',
+      icon: 'notifications-outline',
+      iconBg: '#FFE0B2',
+      label: '알림',
+      value: '켜짐',
+      screen: 'NotificationSettings',
     },
   ];
 
-  const aboutMenuItems: SettingsMenuItem[] = [
+  const accountSettings: SettingItem[] = [
     {
-      id: 'privacy',
-      title: t('settings.privacy'),
-      screen: 'Privacy',
-      showArrow: true,
-    },
-    {
-      id: 'terms',
-      title: t('settings.termsOfService'),
-      screen: 'Terms',
-      showArrow: true,
-    },
-    {
-      id: 'about',
-      title: t('settings.about'),
-      screen: 'About',
-      showArrow: true,
-    },
-    {
-      id: 'version',
-      title: t('settings.version'),
-      value: '1.0.0',
-      showArrow: false,
+      id: 'logout',
+      icon: 'log-out-outline',
+      iconBg: '#FFCDD2',
+      label: '로그아웃',
+      value: '',
     },
   ];
 
-  const renderMenuItem = (item: SettingsMenuItem) => (
+  const renderSettingItem = (item: SettingItem) => (
     <TouchableOpacity
       key={item.id}
-      style={styles.menuItem}
-      onPress={() => item.screen && navigation.navigate(item.screen)}
-      disabled={!item.screen}>
-      <View style={styles.menuItemLeft}>
-        <Text style={styles.menuItemTitle}>{item.title}</Text>
-        {item.subtitle && (
-          <Text style={styles.menuItemSubtitle}>{item.subtitle}</Text>
-        )}
+      style={styles.settingItem}
+      onPress={() => item.screen && navigation.navigate(item.screen as never)}>
+      <View style={styles.settingLeft}>
+        <View style={[styles.iconContainer, {backgroundColor: item.iconBg}]}>
+          <Icon
+            name={item.icon}
+            size={24}
+            color={item.id === 'logout' ? colors.error : colors.primary}
+          />
+        </View>
+        <Text style={styles.settingLabel}>{item.label}</Text>
       </View>
-      <View style={styles.menuItemRight}>
-        {item.value && <Text style={styles.menuItemValue}>{item.value}</Text>}
-        {item.showArrow && (
-          <Text style={styles.menuItemArrow}>›</Text>
-        )}
+      <View style={styles.settingRight}>
+        {item.value && <Text style={styles.settingValue}>{item.value}</Text>}
+        <Icon name="chevron-forward" size={20} color={colors.textSecondary} />
       </View>
     </TouchableOpacity>
   );
 
   return (
-    <Container>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('settings.title')}</Text>
-          <Text style={styles.subtitle}>{t('settings.subtitle')}</Text>
-        </View>
+    <View style={styles.container}>
+      {/* 공통 헤더 컴포넌트 */}
+      <AppHeader showNotificationDot={true} />
 
-        {/* User Profile Section */}
-        {user && (
-          <Card style={styles.profileCard}>
-            <View style={styles.profileContent}>
-              <View style={styles.profileAvatar}>
-                <Text style={styles.profileAvatarText}>
-                  {user.name.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-              <View style={styles.profileInfo}>
-                <Text style={styles.profileName}>{user.name}</Text>
-                <Text style={styles.profileEmail}>{user.email}</Text>
-              </View>
-            </View>
-          </Card>
-        )}
+      {/* 페이지 헤더 */}
+      <View style={styles.pageHeader}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <Text style={styles.pageTitle}>환경 설정</Text>
+        <View style={styles.backButton} />
+      </View>
 
-        {/* App Settings Section */}
+      {/* 메인 콘텐츠 */}
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}>
+        {/* 환경 설정 섹션 */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.appSettings')}</Text>
-          <Card style={styles.menuCard}>
-            {appMenuItems.map((item, index) => (
-              <View key={item.id}>
-                {renderMenuItem(item)}
-                {index < appMenuItems.length - 1 && (
-                  <View style={styles.menuItemDivider} />
-                )}
-              </View>
-            ))}
-          </Card>
+          {environmentSettings.map(item => renderSettingItem(item))}
         </View>
 
-        {/* About Section */}
+        {/* 계정 관리 섹션 */}
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>계정 관리</Text>
+        </View>
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.aboutApp')}</Text>
-          <Card style={styles.menuCard}>
-            {aboutMenuItems.map((item, index) => (
-              <View key={item.id}>
-                {renderMenuItem(item)}
-                {index < aboutMenuItems.length - 1 && (
-                  <View style={styles.menuItemDivider} />
-                )}
-              </View>
-            ))}
-          </Card>
+          {accountSettings.map(item => renderSettingItem(item))}
         </View>
 
-        {/* Logout Button */}
-        <View style={styles.logoutSection}>
-          <Button
-            title={t('auth.logout')}
-            onPress={handleLogout}
-            variant="outline"
-            style={styles.logoutButton}
-          />
+        {/* 하단 앱 정보 */}
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>심장 건강지표 분석 도구 v1.0.0</Text>
+          <Text style={styles.footerCopyright}>© 2024 All rights reserved</Text>
         </View>
-
-        {/* Bottom Spacing */}
-        <View style={styles.bottomSpacing} />
       </ScrollView>
-    </Container>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: colors.background,
   },
-  header: {
-    paddingHorizontal: spacing.lg,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
-  },
-  title: {
-    fontSize: typography.fontSize['3xl'],
-    fontWeight: typography.fontWeight.bold as any,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.base,
-    color: colors.text.secondary,
-  },
-  profileCard: {
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.lg,
-  },
-  profileContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: spacing.md,
-  },
-  profileAvatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: colors.primary[500],
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: spacing.md,
-  },
-  profileAvatarText: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold as any,
-    color: colors.white,
-  },
-  profileInfo: {
-    flex: 1,
-  },
-  profileName: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold as any,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  profileEmail: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  section: {
-    marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.semibold as any,
-    color: colors.text.secondary,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginHorizontal: spacing.lg,
-    marginBottom: spacing.sm,
-  },
-  menuCard: {
-    marginHorizontal: spacing.lg,
-  },
-  menuItem: {
+  pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    paddingHorizontal: spacing.containerPadding,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.md,
+    backgroundColor: colors.background,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.backgroundDark,
   },
-  menuItemLeft: {
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pageTitle: {
+    ...typography.heading,
+    fontSize: 18,
+    color: colors.text,
+  },
+  content: {
     flex: 1,
   },
-  menuItemTitle: {
-    fontSize: typography.fontSize.base,
-    fontWeight: typography.fontWeight.medium as any,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
+  contentContainer: {
+    paddingHorizontal: spacing.containerPadding,
+    paddingTop: spacing.lg,
   },
-  menuItemSubtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+  section: {
+    backgroundColor: colors.backgroundDark,
+    borderRadius: 16,
+    padding: 8,
+    marginBottom: spacing.lg,
   },
-  menuItemRight: {
+  sectionHeader: {
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+  },
+  settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    backgroundColor: colors.background,
+    borderRadius: 12,
+    marginBottom: 8,
   },
-  menuItemValue: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    marginRight: spacing.sm,
+  settingLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
   },
-  menuItemArrow: {
-    fontSize: typography.fontSize['2xl'],
-    color: colors.text.tertiary,
+  iconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
   },
-  menuItemDivider: {
-    height: 1,
-    backgroundColor: colors.gray[200],
-    marginLeft: spacing.md,
+  settingLabel: {
+    fontSize: 15,
+    fontWeight: '500',
+    color: colors.text,
   },
-  logoutSection: {
-    marginTop: spacing.lg,
-    marginHorizontal: spacing.lg,
+  settingRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  logoutButton: {
-    borderColor: colors.error[500],
+  settingValue: {
+    fontSize: 14,
+    color: colors.textSecondary,
   },
-  bottomSpacing: {
-    height: spacing.xl,
+  footer: {
+    alignItems: 'center',
+    paddingVertical: spacing.xl,
+    marginTop: spacing.xl,
+  },
+  footerText: {
+    fontSize: 13,
+    color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  footerCopyright: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
 });

@@ -61,11 +61,11 @@ export const TopNavigation: React.FC<TopNavigationProps> = ({
         <Icon name="time-outline" size={24} color={colors.textSecondary} />
       </TouchableOpacity>
 
-      {/* Profile/User */}
+      {/* Login */}
       <TouchableOpacity
         style={styles.iconButton}
-        onPress={() => navigation.navigate('Profile' as never)}>
-        <Icon name="person-outline" size={24} color={colors.textSecondary} />
+        onPress={() => navigation.navigate('Login' as never)}>
+        <Icon name="log-in-outline" size={24} color={colors.textSecondary} />
       </TouchableOpacity>
       </View>
     </View>
@@ -76,9 +76,9 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + spacing.md : spacing.xl,
-    paddingBottom: spacing.md,
+    justifyContent: 'center',
+    paddingTop: Platform.OS === 'android' ? (StatusBar.currentHeight || 0) + spacing.sm : spacing.md,
+    paddingBottom: 0,
     paddingHorizontal: spacing.containerPadding,
     backgroundColor: colors.background,
   },
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   iconMenuContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'flex-end',
+    justifyContent: 'center',
     gap: spacing.md,
   },
 
@@ -106,11 +106,11 @@ const styles = StyleSheet.create({
 
   badge: {
     position: 'absolute',
-    top: 8,
-    right: 8,
+    top: 0,
+    right: 0,
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.error,
   },
 });

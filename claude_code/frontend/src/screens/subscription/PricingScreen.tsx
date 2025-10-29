@@ -9,7 +9,7 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {colors, typography, spacing} from '../../styles';
-import {Button} from '../../components/common';
+import {AppHeader} from '../../components/common/AppHeader';
 
 type Props = NativeStackScreenProps<any, 'Pricing'>;
 
@@ -43,7 +43,7 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
       badge: '',
       badgeColor: colors.textSecondary,
       borderColor: colors.border,
-      bgColor: '#FAFAFA', // 매우 연한 회색
+      bgColor: '#FAFAFA',
       features: [
         {text: '3회 심장관련 건강지표 검사', included: true},
         {text: '기본 위험도 분석', included: true},
@@ -59,7 +59,7 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
       badge: '추천',
       badgeColor: colors.info,
       borderColor: colors.info,
-      bgColor: '#EBF5FF', // 매우 연한 파란색 (Figma 색상)
+      bgColor: '#EBF5FF',
       features: [
         {text: '무제한 심장관련 건강지표 검사', included: true},
         {text: '검사 이력 무제한 저장', included: true},
@@ -77,7 +77,7 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
       badge: '17% 할인',
       badgeColor: colors.success,
       borderColor: colors.success,
-      bgColor: '#ECFDF5', // 매우 연한 초록색 (Figma 색상)
+      bgColor: '#ECFDF5',
       features: [
         {text: '월간 이용권의 모든 기능', included: true},
         {text: '2개월 무료 (17% 할인)', included: true},
@@ -94,7 +94,7 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
       badge: '최고 할인',
       badgeColor: colors.premium,
       borderColor: colors.premium,
-      bgColor: '#F5F3FF', // 매우 연한 보라색 (Figma 색상)
+      bgColor: '#F5F3FF',
       features: [
         {text: '연간 이용권의 모든 기능', included: true},
         {text: '평생 무료 업데이트', included: true},
@@ -130,56 +130,29 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
 
   return (
     <View style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        {/* 상단 아이콘 메뉴 - HomeScreen과 동일 */}
-        <View style={styles.header}>
-          <View style={styles.iconMenu}>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('Settings')}>
-              <Icon name="settings-outline" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.iconButton, styles.iconButtonActive]}
-              onPress={() => navigation.navigate('Pricing')}>
-              <Icon name="card-outline" size={24} color={colors.background} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('Notifications')}>
-              <Icon name="notifications-outline" size={24} color={colors.textSecondary} />
-              <View style={styles.notificationDot} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('History')}>
-              <Icon name="time-outline" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconButton}
-              onPress={() => navigation.navigate('Login')}>
-              <Icon name="log-in-outline" size={24} color={colors.textSecondary} />
-            </TouchableOpacity>
-          </View>
+      {/* 공통 헤더 컴포넌트 */}
+      <AppHeader showNotificationDot={true} />
 
-          <Text style={styles.title}>심장 건강지표 분석 도구</Text>
+      {/* 페이지 헤더 */}
+      <View style={styles.pageHeader}>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}>
+          <Icon name="arrow-back" size={24} color={colors.text} />
+        </TouchableOpacity>
+        <View style={styles.pageTitleContainer}>
+          <Text style={styles.pageTitle}>요금제 선택</Text>
         </View>
+      </View>
 
-        {/* 페이지 제목과 뒤로가기 버튼 */}
-        <View style={styles.pageHeader}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}>
-            <Icon name="arrow-back" size={24} color={colors.text} />
-          </TouchableOpacity>
-          <View style={styles.pageTitleContainer}>
-            <Text style={styles.pageTitle}>요금제 선택</Text>
-          </View>
-        </View>
-
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}>
         {/* Subtitle */}
         <View style={styles.subtitleContainer}>
-          <Text style={styles.subtitle}>심장 건강지표 분석 도구 프리미엄 구독</Text>
+          <Text style={styles.subtitle}>
+            심장 건강지표 분석 도구 프리미엄 구독
+          </Text>
         </View>
 
         {/* Current Subscription Status */}
@@ -316,7 +289,7 @@ export const PricingScreen: React.FC<Props> = ({navigation}) => {
           <Text style={styles.faqTitle}>자주 묻는 질문</Text>
           <View style={styles.faqItem}>
             <Text style={styles.faqQuestion}>
-              검사 결과는 의료진 진단을 대체하나요?
+              분석 결과는 의료진 진단을 대체하나요?
             </Text>
             <Text style={styles.faqAnswer}>
               아니요. 심장닥터는 참고용 건강 정보를 제공하며, 정확한 진단은
@@ -369,58 +342,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
 
-  scrollContent: {
-    paddingHorizontal: spacing.containerPadding,
-    paddingTop: 0,
-    paddingBottom: spacing.xxxl,
-  },
-
-  header: {
-    paddingHorizontal: spacing.containerPadding,
-    paddingTop: 48,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.background,
-  },
-  iconMenu: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: 24,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  iconButtonActive: {
-    backgroundColor: colors.text,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.error,
-  },
-  title: {
-    ...typography.title,
-    color: colors.text,
-    textAlign: 'center',
-    fontFamily: 'serif',
-  },
-
   pageHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: spacing.containerPadding,
     paddingVertical: spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.backgroundDark,
   },
   backButton: {
     width: 40,
@@ -434,13 +362,18 @@ const styles = StyleSheet.create({
     marginRight: 40,
   },
   pageTitle: {
-    ...typography.subtitleLarge,
+    ...typography.heading,
+    fontSize: 18,
     color: colors.text,
-    fontWeight: '600',
+  },
+
+  scrollContent: {
+    paddingHorizontal: spacing.containerPadding,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxxl,
   },
 
   subtitleContainer: {
-    paddingHorizontal: spacing.containerPadding,
     marginBottom: spacing.lg,
   },
   subtitle: {
@@ -454,7 +387,7 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xl,
     borderWidth: 1,
     borderColor: colors.info,
-    backgroundColor: '#EBF5FF', // 연한 파란색 (Figma 색상)
+    backgroundColor: '#EBF5FF',
   },
 
   currentPlanRow: {

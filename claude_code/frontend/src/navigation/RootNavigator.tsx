@@ -7,9 +7,9 @@ import { colors } from '../styles';
 
 // Import navigators
 import AuthNavigator from './AuthNavigator';
-import MainTabNavigator from './MainTabNavigator';
 
 // Import screens
+import { HomeScreen } from '../screens/main/HomeScreen';
 import { ResultScreen } from '../screens/main/ResultScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 // import NotificationsScreen from '../components/screens/NotificationsScreen'; // TODO: Create NotificationsScreen
@@ -50,8 +50,8 @@ const RootNavigator = () => {
       ) : (
         // Show Main App Navigator when authenticated
         <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {/* Main Tab Navigator with bottom tabs */}
-          <Stack.Screen name="MainTabs" component={MainTabNavigator} />
+          {/* Home Screen without bottom tabs */}
+          <Stack.Screen name="Home" component={HomeScreen} />
 
           {/* Modal/Overlay screens accessible from anywhere */}
           <Stack.Screen

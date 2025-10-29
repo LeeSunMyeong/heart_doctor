@@ -11,6 +11,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {colors, typography, spacing} from '../../styles';
+import {AppHeader} from '../../components/common/AppHeader';
 
 interface AssessmentData {
   gender: string;
@@ -150,7 +151,9 @@ export const HomeScreen = ({navigation}: any) => {
 
   const renderYesNoField = (label: string, field: keyof AssessmentData) => (
     <View style={styles.fieldRow}>
-      <Text style={styles.yesNoLabel}>{label}</Text>
+      <Text style={styles.yesNoLabel} numberOfLines={1}>
+        {label}
+      </Text>
       <View style={styles.selectButtons}>
         {[
           {value: 'yes', label: '예'},
@@ -178,39 +181,8 @@ export const HomeScreen = ({navigation}: any) => {
 
   return (
     <View style={styles.container}>
-      {/* 상단 아이콘 메뉴 */}
-      <View style={styles.header}>
-        <View style={styles.iconMenu}>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('Settings')}>
-            <Icon name="settings-outline" size={24} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('Pricing')}>
-            <Icon name="card-outline" size={24} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('Notifications')}>
-            <Icon name="notifications-outline" size={24} color={colors.textSecondary} />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('History')}>
-            <Icon name="time-outline" size={24} color={colors.textSecondary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.iconButton}
-            onPress={() => navigation.navigate('Login')}>
-            <Icon name="log-in-outline" size={24} color={colors.textSecondary} />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.title}>심장 건강지표 분석 도구</Text>
-      </View>
+      {/* 공통 헤더 컴포넌트 */}
+      <AppHeader />
 
       {/* 메인 콘텐츠 */}
       <ScrollView
@@ -321,7 +293,7 @@ export const HomeScreen = ({navigation}: any) => {
             {renderYesNoField('발 통증', 'footPain')}
             {renderYesNoField('발 부종', 'edemaLegs')}
             {renderYesNoField('호흡곤란', 'dyspnea')}
-            {renderYesNoField('어지러움(실신)', 'syncope')}
+            {renderYesNoField('어중음탈락(실신)', 'syncope')}
             {renderYesNoField('피로감', 'weakness')}
             {renderYesNoField('구토', 'vomiting')}
             {renderYesNoField('심장 두근거림', 'palpitation')}
@@ -407,46 +379,6 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#FFFFFF',
   },
-  header: {
-    paddingHorizontal: spacing.containerPadding,
-    paddingTop: 48,
-    paddingBottom: spacing.md,
-    backgroundColor: colors.background,
-  },
-  iconMenu: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: spacing.md,
-    marginBottom: 24,
-  },
-  iconButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: colors.backgroundDark,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  iconButtonActive: {
-    backgroundColor: colors.text,
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 0,
-    right: 0,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: colors.error,
-  },
-  title: {
-    ...typography.title,
-    color: colors.text,
-    textAlign: 'center',
-    fontFamily: 'serif',
-  },
   content: {
     flex: 1,
   },
@@ -485,10 +417,10 @@ const styles = StyleSheet.create({
     flexShrink: 0,
   },
   yesNoLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: '#1F2937',
-    width: 64,
+    width: 80,
     flexShrink: 0,
   },
   selectButtons: {

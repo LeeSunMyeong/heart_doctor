@@ -3,35 +3,35 @@ import {View, Text, StyleSheet} from 'react-native';
 import {colors, typography, spacing} from '../../styles';
 import {TopNavigation} from './TopNavigation';
 
-export const AppHeader: React.FC = () => {
+interface AppHeaderProps {
+  showNotificationDot?: boolean;
+}
+
+export const AppHeader: React.FC<AppHeaderProps> = ({
+  showNotificationDot = true,
+}) => {
   return (
-    <View style={styles.container}>
+    <View style={styles.header}>
       {/* Top Navigation Icons */}
-      <TopNavigation />
+      <TopNavigation hasNotificationBadge={showNotificationDot} />
 
       {/* App Title */}
-      <View style={styles.titleContainer}>
-        <Text style={styles.title}>심장 건강지표 분석 도구</Text>
-      </View>
+      <Text style={styles.title}>심장 건강지표 분석 도구</Text>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  header: {
+    paddingHorizontal: spacing.containerPadding,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.md,
     backgroundColor: colors.background,
   },
-
-  titleContainer: {
-    alignItems: 'center',
-    paddingTop: 0,
-    paddingBottom: spacing.md,
-  },
-
   title: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    ...typography.title,
     color: colors.text,
-    fontFamily: 'System',
+    textAlign: 'center',
+    fontFamily: 'serif',
   },
 });
