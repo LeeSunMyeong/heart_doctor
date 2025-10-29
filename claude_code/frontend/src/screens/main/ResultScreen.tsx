@@ -1,19 +1,26 @@
 import React from 'react';
-import {View, Text, StyleSheet, ScrollView} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  Dimensions,
+} from 'react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {RouteProp} from '@react-navigation/native';
-import {useAssessmentStore} from '../../store/assessmentStore';
-import {Container} from '../../components/ui/Container';
-import {Card} from '../../components/ui/Card';
-import {Button} from '../../components/ui/Button';
-import {Divider} from '../../components/ui/Divider';
-import {colors} from '../../theme/colors';
-import {typography} from '../../theme/typography';
-import {spacing} from '../../theme/spacing';
-import {useTranslation} from 'react-i18next';
+import {CheckResponse, PredictionResponse} from '../../api/types';
+import {AssessmentData} from '../../services/checkService';
+import {AppHeader} from '../../components/common/AppHeader';
+
+const {width} = Dimensions.get('window');
 
 type RootStackParamList = {
-  Result: {resultId?: string};
+  Result: {
+    checkData: {check: CheckResponse; prediction: PredictionResponse};
+    assessmentData: AssessmentData;
+  };
   Home: undefined;
   History: undefined;
 };
@@ -29,249 +36,196 @@ interface ResultScreenProps {
   route: ResultScreenRouteProp;
 }
 
-export const ResultScreen: React.FC<ResultScreenProps> = ({navigation}) => {
-  const {t} = useTranslation();
-  const {latestResult} = useAssessmentStore();
+export const ResultScreen: React.FC<ResultScreenProps> = ({
+  navigation,
+  route,
+}) => {
+  const {checkData, assessmentData} = route.params || {};
 
-  if (!latestResult) {
+  if (!checkData) {
     return (
-      <Container padding="lg">
+      <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Text style={styles.emptyText}>{t('result.noResult')}</Text>
-          <Button onPress={() => navigation.navigate('Home')}>
-            {t('result.goToAssessment')}
-          </Button>
+          <Text style={styles.emptyText}>검사 결과가 없습니다</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={() => navigation.navigate('Home')}>
+            <Text style={styles.buttonText}>검사 시작하기</Text>
+          </TouchableOpacity>
         </View>
-      </Container>
+      </View>
     );
   }
 
-  const {predictions, riskLevel, confidence, recommendations} = latestResult;
+  const {check, prediction} = checkData;
 
-  const getRiskColor = (level: string) => {
-    switch (level) {
-      case 'low':
-        return colors.success[500];
-      case 'medium':
-        return colors.warning[500];
-      case 'high':
-        return colors.error[500];
-      case 'critical':
-        return colors.error[700];
-      default:
-        return colors.text.secondary;
-    }
-  };
+  // 정상 여부 판단: normal 확률이 가장 높으면 정상
+  const isNormal = prediction.diagnosis === 'NORMAL';
 
   return (
-    <ScrollView style={styles.container}>
-      <Container padding="lg">
-        <View style={styles.header}>
-          <Text style={styles.title}>{t('result.title')}</Text>
-          <Text style={styles.subtitle}>{t('result.subtitle')}</Text>
+    <View style={styles.container}>
+      <AppHeader />
+
+      {/* 뒤로가기 + 타이틀 */}
+      <View style={styles.navigationBar}>
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={styles.backButton}>
+          <Text style={styles.backButtonText}>←</Text>
+        </TouchableOpacity>
+        <Text style={styles.title}>분석 결과</Text>
+      </View>
+
+      <ScrollView style={styles.scrollContainer} contentContainerStyle={styles.scrollContent}>
+        {/* 심장 이미지 카드 */}
+        <View style={styles.heartCard}>
+          <Image
+            source={require('../../assets/images/heart.png')}
+            style={styles.heartImage}
+            resizeMode="contain"
+          />
         </View>
 
-        <Card variant="elevated" style={styles.riskCard}>
-          <View style={styles.riskHeader}>
-            <Text style={styles.riskLabel}>{t('result.riskLevel')}</Text>
-            <View
-              style={[
-                styles.riskBadge,
-                {backgroundColor: getRiskColor(riskLevel)},
-              ]}>
-              <Text style={styles.riskText}>
-                {t(`result.riskLevel.${riskLevel}`)}
-              </Text>
-            </View>
-          </View>
-          <Text style={styles.confidence}>
-            {t('result.confidence')}: {(confidence * 100).toFixed(1)}%
+        {/* 결과 메시지 */}
+        <View style={styles.resultMessage}>
+          <Text style={styles.resultText}>
+            {isNormal
+              ? '고객의 심장 관련 건강지표는\n일반적인 경향을 보입니다.'
+              : '고객의 심장 관련 건강지표는\n일반적인 경향과 차이를 보입니다.'}
           </Text>
-        </Card>
 
-        <Card variant="elevated" style={styles.predictionsCard}>
-          <Text style={styles.sectionTitle}>{t('result.predictions')}</Text>
-          <Divider style={styles.divider} />
-
-          {Object.entries(predictions).map(([key, value]) => (
-            <View key={key} style={styles.predictionRow}>
-              <Text style={styles.predictionLabel}>
-                {t(`result.prediction.${key}`)}
-              </Text>
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    {width: `${value * 100}%`},
-                  ]}
-                />
-              </View>
-              <Text style={styles.predictionValue}>
-                {(value * 100).toFixed(1)}%
-              </Text>
-            </View>
-          ))}
-        </Card>
-
-        <Card variant="elevated" style={styles.recommendationsCard}>
-          <Text style={styles.sectionTitle}>{t('result.recommendations')}</Text>
-          <Divider style={styles.divider} />
-
-          {recommendations.map((rec, index) => (
-            <View key={index} style={styles.recommendationItem}>
-              <Text style={styles.bullet}>•</Text>
-              <Text style={styles.recommendationText}>{rec}</Text>
-            </View>
-          ))}
-        </Card>
-
-        <View style={styles.actions}>
-          <Button
-            variant="outline"
-            onPress={() => navigation.navigate('Home')}
-            style={styles.button}>
-            {t('result.newAssessment')}
-          </Button>
-          <Button
-            variant="primary"
-            onPress={() => navigation.navigate('History')}
-            style={styles.button}>
-            {t('result.viewHistory')}
-          </Button>
+          <View style={styles.disclaimerBox}>
+            <Text style={styles.disclaimerText}>
+              ※ 본 결과는 참고용 자동 분석 결과이며, 질병 진단이나 치료를 위한 것이 아닙니다. 건강 관련 진단이나 판단은 전문가와 상담하시기 바랍니다.
+            </Text>
+          </View>
         </View>
-      </Container>
-    </ScrollView>
+
+        {/* 이전으로 돌아가기 버튼 */}
+        <TouchableOpacity
+          style={styles.returnButton}
+          onPress={() => navigation.navigate('Home')}>
+          <Text style={styles.returnButtonText}>이전으로 돌아가기</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.default,
+    backgroundColor: '#F5F3FF',
   },
-  header: {
-    marginBottom: spacing.xl,
-    alignItems: 'center',
+  scrollContainer: {
+    flex: 1,
   },
-  title: {
-    fontSize: typography.fontSize['2xl'],
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.primary,
-    marginBottom: spacing.xs,
-  },
-  subtitle: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-    textAlign: 'center',
+  scrollContent: {
+    paddingBottom: 40,
+    paddingTop: 20,
   },
   emptyState: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: spacing['4xl'],
+    padding: 40,
   },
   emptyText: {
-    fontSize: typography.fontSize.lg,
-    color: colors.text.secondary,
-    marginBottom: spacing.lg,
+    fontSize: 18,
+    color: '#6B7280',
+    marginBottom: 24,
   },
-  riskCard: {
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
-  },
-  riskHeader: {
+  navigationBar: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    justifyContent: 'center',
+    paddingVertical: 20,
+    position: 'relative',
   },
-  riskLabel: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    padding: 8,
   },
-  riskBadge: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.xs,
+  backButtonText: {
+    fontSize: 30,
+    color: '#111827',
+    lineHeight: 30,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#111827',
+  },
+  heartCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
+    padding: 24,
+    shadowColor: '#000',
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+  heartImageContainer: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  heartImage: {
+    width: width - 120,
+    height: (width - 120) * 0.6,
     borderRadius: 16,
   },
-  riskText: {
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.bold,
-    color: colors.text.inverse,
-  },
-  confidence: {
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
-  },
-  predictionsCard: {
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: typography.fontSize.lg,
-    fontWeight: typography.fontWeight.semibold,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  divider: {
-    marginBottom: spacing.md,
-  },
-  predictionRow: {
-    flexDirection: 'row',
+  resultMessage: {
     alignItems: 'center',
-    marginBottom: spacing.sm,
+    marginTop: 32,
+    paddingHorizontal: 20,
   },
-  predictionLabel: {
-    flex: 1,
-    fontSize: typography.fontSize.sm,
-    color: colors.text.secondary,
+  resultText: {
+    fontSize: 18,
+    color: '#111827',
+    textAlign: 'center',
+    lineHeight: 28,
+    fontWeight: '600',
+    marginBottom: 24,
   },
-  progressBar: {
-    flex: 2,
-    height: 8,
-    backgroundColor: colors.background.secondary,
-    borderRadius: 4,
-    marginHorizontal: spacing.sm,
+  disclaimerBox: {
+    backgroundColor: '#F3F4F6',
+    borderRadius: 12,
+    padding: 16,
+    width: '100%',
   },
-  progressFill: {
-    height: '100%',
-    backgroundColor: colors.primary[500],
-    borderRadius: 4,
+  disclaimerText: {
+    fontSize: 12,
+    color: '#6B7280',
+    lineHeight: 18,
+    textAlign: 'center',
   },
-  predictionValue: {
-    width: 50,
-    fontSize: typography.fontSize.sm,
-    fontWeight: typography.fontWeight.medium,
-    color: colors.text.primary,
-    textAlign: 'right',
+  returnButton: {
+    backgroundColor: '#000000',
+    marginHorizontal: 20,
+    marginTop: 24,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
   },
-  recommendationsCard: {
-    marginBottom: spacing.lg,
-    padding: spacing.lg,
-  },
-  recommendationItem: {
-    flexDirection: 'row',
-    marginBottom: spacing.sm,
-  },
-  bullet: {
-    fontSize: typography.fontSize.base,
-    color: colors.primary[500],
-    marginRight: spacing.sm,
-  },
-  recommendationText: {
-    flex: 1,
-    fontSize: typography.fontSize.sm,
-    color: colors.text.primary,
-    lineHeight: 20,
-  },
-  actions: {
-    flexDirection: 'row',
-    gap: spacing.md,
-    marginTop: spacing.lg,
-    marginBottom: spacing.xl,
+  returnButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
   button: {
-    flex: 1,
+    backgroundColor: '#3B82F6',
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });
