@@ -2,10 +2,11 @@ import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-si
 import { Platform } from 'react-native';
 import axios from 'axios';
 import { getBaseUrl } from './config';
+import { GOOGLE_WEB_CLIENT_ID, GOOGLE_IOS_CLIENT_ID } from '@env';
 
 // Google Sign-In 초기화 설정
-const WEB_CLIENT_ID = '750875921511-pvhnoov9aepqi9ubg0kl1pkt8s2kg9c7.apps.googleusercontent.com';
-const IOS_CLIENT_ID = '750875921511-f9h8h2h9m4g8qh3vk7p05mkblg9sro3b.apps.googleusercontent.com';
+const WEB_CLIENT_ID = GOOGLE_WEB_CLIENT_ID || '';
+const IOS_CLIENT_ID = GOOGLE_IOS_CLIENT_ID || '';
 
 export const configureGoogleSignIn = () => {
   GoogleSignin.configure({
