@@ -54,6 +54,10 @@ dependencies {
     // WebSocket Client for OpenAI
     implementation 'org.java-websocket:Java-WebSocket:1.5.4'
 
+    // Google OAuth2 & API Client
+    implementation 'com.google.api-client:google-api-client:2.2.0'
+    implementation 'com.google.auth:google-auth-library-oauth2-http:1.19.0'
+
     // Development Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'

@@ -36,6 +36,10 @@ public class LoginResponse {
     @Builder
     public static class UserInfo {
         private Long userId;
+        private String userName;
+        private String phone;
+        private String role;
+        private String provider;
         private String email;
         private String name;
         private String profileImageUrl;

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { authService } from '../../services/authService';
+import { googleAuthService, configureGoogleSignIn } from '../../services/googleAuthService';
 import { useAuthStore } from '../../store/authStore';
 
 type RootStackParamList = {
@@ -31,6 +32,11 @@ export const LoginScreen = () => {
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    // Google Sign-In 초기화
+    configureGoogleSignIn();
+  }, []);
 
   const handleLogin = async () => {
     console.log('[LoginScreen] handleLogin called, phone:', phone, 'password length:', password.length);
@@ -59,8 +65,30 @@ export const LoginScreen = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    console.log('[LoginScreen] handleGoogleLogin called');
+    setLoading(true);
+    try {
+      const response = await googleAuthService.signIn();
+      console.log('[LoginScreen] Google login successful:', response.user);
+
+      // Update authStore to trigger navigation
+      setUser(response.user);
+      console.log('[LoginScreen] Auth state updated with Google user');
+    } catch (error: any) {
+      console.log('[LoginScreen] Google login error:', error);
+      Alert.alert('Google 로그인 실패', error.message || 'Google 로그인에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleSocialLogin = (provider: string) => {
-    Alert.alert('준비 중', `${provider} 로그인 기능은 준비 중입니다.`);
+    if (provider === '구글') {
+      handleGoogleLogin();
+    } else {
+      Alert.alert('준비 중', `${provider} 로그인 기능은 준비 중입니다.`);
+    }
   };
 
   return (

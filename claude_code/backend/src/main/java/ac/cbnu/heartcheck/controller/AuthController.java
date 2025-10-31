@@ -1,11 +1,13 @@
 package ac.cbnu.heartcheck.controller;
 
+import ac.cbnu.heartcheck.dto.request.GoogleLoginRequest;
 import ac.cbnu.heartcheck.dto.request.LoginRequest;
 import ac.cbnu.heartcheck.dto.request.RefreshTokenRequest;
 import ac.cbnu.heartcheck.dto.request.UserRegistrationRequest;
 import ac.cbnu.heartcheck.dto.response.ApiResponse;
 import ac.cbnu.heartcheck.dto.response.LoginResponse;
 import ac.cbnu.heartcheck.service.AuthService;
+import ac.cbnu.heartcheck.service.GoogleAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -26,6 +28,7 @@ import java.security.Principal;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleAuthService googleAuthService;
 
     @PostMapping("/login")
     @Operation(summary = "Login", description = "Login with phone and password")
@@ -98,5 +101,22 @@ public class AuthController {
     @Operation(summary = "Health check", description = "Check authentication system status")
     public ResponseEntity<ApiResponse<String>> health() {
         return ResponseEntity.ok(ApiResponse.success("OK", "Authentication system is running"));
+    }
+
+    @PostMapping("/google")
+    @Operation(summary = "Google Login", description = "Login with Google ID Token")
+    public ResponseEntity<ApiResponse<LoginResponse>> googleLogin(@Valid @RequestBody GoogleLoginRequest request) {
+        try {
+            LoginResponse response = googleAuthService.loginWithGoogle(request);
+            return ResponseEntity.ok(ApiResponse.success(response, "Google login successful"));
+        } catch (IllegalArgumentException e) {
+            log.error("Google login failed: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                .body(ApiResponse.error(e.getMessage()));
+        } catch (Exception e) {
+            log.error("Google login error", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Google login failed: " + e.getMessage()));
+        }
     }
 }
