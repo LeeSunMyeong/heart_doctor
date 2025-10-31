@@ -29,15 +29,16 @@ export const submitAssessment = async (
 
 /**
  * 사용자의 모든 검사 기록 조회
+ * JWT token에서 userId 자동 추출
  */
-export const getAssessmentHistory = async (
-  userId: number,
-): Promise<CheckResponse[]> => {
-  const response = await apiClient.get<ApiResponse<CheckResponse[]>>(
-    `/checks/user/${userId}`,
-  );
+export const getAssessmentHistory = async (): Promise<CheckResponse[]> => {
+  const response = await api.get<CheckResponse[]>('/checks/user/me');
 
-  return getApiData(response);
+  if (!response.success || !response.data) {
+    throw new Error(response.error || '검사 이력 조회에 실패했습니다.');
+  }
+
+  return response.data;
 };
 
 /**

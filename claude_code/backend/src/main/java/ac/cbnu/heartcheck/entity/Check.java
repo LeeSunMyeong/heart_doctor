@@ -1,5 +1,6 @@
 package ac.cbnu.heartcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -35,6 +36,7 @@ public class Check {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
@@ -147,6 +149,7 @@ public class Check {
     private Boolean insomnia = false; // Q16. 수면장애 여부
 
     // 관계 매핑
+    @JsonIgnore
     @OneToOne(mappedBy = "check", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Prediction prediction;
 

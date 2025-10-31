@@ -182,6 +182,7 @@ export type RootStackParamList = {
 
   // Home Stack
   Home: undefined;
+  VoiceTestMode: undefined;
   CheckTest: undefined;
   CheckResult: { predictionId: number };
 

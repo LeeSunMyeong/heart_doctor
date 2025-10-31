@@ -4,6 +4,7 @@ import { RootStackParamList } from '../../types';
 
 // Import screens
 import { HomeScreen } from '../../screens/main/HomeScreen';
+import { VoiceTestModeScreen } from '../../screens/main/VoiceTestModeScreen';
 // TODO: Create these screens
 // import CheckTestScreen from '../../components/screens/CheckTestScreen';
 // import CheckResultScreen from '../../components/screens/CheckResultScreen';
@@ -28,6 +29,11 @@ const HomeStackNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{ title: '홈' }}
+      />
+      <Stack.Screen
+        name="VoiceTestMode"
+        component={VoiceTestModeScreen}
+        options={{ title: '음성 검사 모드' }}
       />
       {/* TODO: Add these screens when they are created
       <Stack.Screen

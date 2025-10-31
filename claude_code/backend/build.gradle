@@ -34,6 +34,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
     implementation 'org.springframework.session:spring-session-data-redis'
 
     // Database
@@ -49,6 +50,9 @@ dependencies {
 
     // Swagger/OpenAPI
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0'
+
+    // WebSocket Client for OpenAI
+    implementation 'org.java-websocket:Java-WebSocket:1.5.4'
 
     // Development Tools
     developmentOnly 'org.springframework.boot:spring-boot-devtools'

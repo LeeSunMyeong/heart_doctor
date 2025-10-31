@@ -118,15 +118,25 @@ public class PredictionController {
             Prediction prediction = predictionOpt.get();
             String riskLevel = predictionService.assessRiskLevel(prediction);
 
+            // Manually construct prediction response to avoid circular reference
+            Map<String, Object> predictionData = new java.util.HashMap<>();
+            predictionData.put("id", prediction.getId());
+            predictionData.put("angina", prediction.getAngina());
+            predictionData.put("mi", prediction.getMi());
+            predictionData.put("hf", prediction.getHf());
+            predictionData.put("af", prediction.getAf());
+            predictionData.put("other", prediction.getOther());
+            predictionData.put("normal", prediction.getNormal());
+            predictionData.put("comment", prediction.getComment());
+            predictionData.put("predictTime", prediction.getPredictTime());
+            predictionData.put("diagnosis", prediction.getHighestProbabilityDiagnosis());
+            predictionData.put("diagnosisKorean", prediction.getDiagnosisKoreanName());
+            predictionData.put("riskLevel", riskLevel);
+            predictionData.put("medicalReviewRecommended", predictionService.isRecommendMedicalReview(prediction));
+
             Map<String, Object> response = Map.of(
                 "success", true,
-                "data", Map.of(
-                    "prediction", prediction,
-                    "diagnosis", prediction.getHighestProbabilityDiagnosis(),
-                    "diagnosisKorean", prediction.getDiagnosisKoreanName(),
-                    "riskLevel", riskLevel,
-                    "medicalReviewRecommended", predictionService.isRecommendMedicalReview(prediction)
-                )
+                "data", predictionData
             );
 
             return ResponseEntity.ok(response);

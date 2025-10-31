@@ -123,6 +123,71 @@ public class CheckController {
     }
 
     /**
+     * 현재 사용자의 검사 이력 조회 (JWT에서 userId 추출)
+     * GET /api/checks/user/me
+     */
+    @GetMapping("/user/me")
+    public ResponseEntity<Map<String, Object>> getMyChecks(
+            @AuthenticationPrincipal CustomUserDetails userDetails) {
+        try {
+            Long userId = userDetails.getUser().getUserId();
+            log.info("Fetching checks for user: {} (from JWT)", userId);
+
+            User user = User.builder().userId(userId).build();
+            List<Check> checks = checkService.findRecentChecks(user);
+
+            // Check 엔티티에 userId를 명시적으로 포함하기 위해 Map으로 변환
+            List<Map<String, Object>> checkData = checks.stream().map(check -> {
+                Map<String, Object> checkMap = new java.util.HashMap<>();
+                checkMap.put("checkId", check.getId());
+                checkMap.put("userId", userId);
+                checkMap.put("assessmentTime", check.getAssessmentTime());
+                checkMap.put("age", check.getAge());
+                checkMap.put("height", check.getHeight());
+                checkMap.put("weight", check.getWeight());
+                checkMap.put("bmi", check.getBmi());
+                checkMap.put("gender", check.getGender());
+                checkMap.put("temperature", check.getTemperature());
+                checkMap.put("breathing", check.getBreathing());
+                checkMap.put("pulse", check.getPulse());
+                checkMap.put("chestPain", check.getChestPain());
+                checkMap.put("flankPain", check.getFlankPain());
+                checkMap.put("footPain", check.getFootPain());
+                checkMap.put("footEdema", check.getFootEdema());
+                checkMap.put("dyspnea", check.getDyspnea());
+                checkMap.put("syncope", check.getSyncope());
+                checkMap.put("weakness", check.getWeakness());
+                checkMap.put("vomitting", check.getVomitting());
+                checkMap.put("palpitation", check.getPalpitation());
+                checkMap.put("dizziness", check.getDizziness());
+                checkMap.put("chestTightness", check.getChestTightness());
+                checkMap.put("sweating", check.getSweating());
+                checkMap.put("headache", check.getHeadache());
+                checkMap.put("nausea", check.getNausea());
+                checkMap.put("edema", check.getEdema());
+                checkMap.put("insomnia", check.getInsomnia());
+                checkMap.put("symptomCount", check.getSymptomCount());
+                return checkMap;
+            }).collect(java.util.stream.Collectors.toList());
+
+            Map<String, Object> response = Map.of(
+                "success", true,
+                "message", "검사 이력 조회 성공",
+                "data", checkData
+            );
+
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Error retrieving user checks from JWT", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "success", false,
+                "message", "검사 이력 조회 중 오류가 발생했습니다."
+            ));
+        }
+    }
+
+    /**
      * 사용자별 검사 이력 조회 (페이징)
      * GET /api/checks/user/{userId}
      */

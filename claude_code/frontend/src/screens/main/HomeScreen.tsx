@@ -11,10 +11,12 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import Icon from 'react-native-vector-icons/Ionicons';
 import {colors, typography, spacing} from '../../styles';
 import {AppHeader} from '../../components/common/AppHeader';
 import {submitCheck} from '../../services/checkService';
+import type {RootStackParamList} from '../../types';
 
 interface AssessmentData {
   gender: string;
@@ -56,7 +58,13 @@ const initialData: AssessmentData = {
   dizziness: '',
 };
 
-export const HomeScreen = ({navigation}: any) => {
+type HomeScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Home'
+>;
+
+export const HomeScreen = () => {
+  const navigation = useNavigation<HomeScreenNavigationProp>();
   const [data, setData] = useState<AssessmentData>(initialData);
   const [showPulseModal, setShowPulseModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -219,6 +227,14 @@ export const HomeScreen = ({navigation}: any) => {
         style={styles.content}
         contentContainerStyle={styles.contentContainer}>
         <View style={styles.formWrapper}>
+          {/* 음성 검사 모드로 전환 버튼 */}
+          <TouchableOpacity
+            style={styles.voiceModeButton}
+            onPress={() => navigation.navigate('VoiceTestMode')}>
+            <Icon name="mic" size={16} color="#3B82F6" />
+            <Text style={styles.voiceModeText}>음성 검사 모드로 전환</Text>
+          </TouchableOpacity>
+
           {/* 기본 정보 섹션 */}
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>기본 정보</Text>
@@ -425,6 +441,22 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 12,
     gap: 12,
+  },
+  voiceModeButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#DBEAFE',
+  },
+  voiceModeText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#3B82F6',
   },
   section: {
     backgroundColor: '#FFFFFF',

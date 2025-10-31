@@ -10,6 +10,7 @@ import AuthNavigator from './AuthNavigator';
 
 // Import screens
 import { HomeScreen } from '../screens/main/HomeScreen';
+import { VoiceTestModeScreen } from '../screens/main/VoiceTestModeScreen';
 import { ResultScreen } from '../screens/main/ResultScreen';
 import { HistoryScreen } from '../screens/main/HistoryScreen';
 // import NotificationsScreen from '../components/screens/NotificationsScreen'; // TODO: Create NotificationsScreen
@@ -52,6 +53,15 @@ const RootNavigator = () => {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           {/* Home Screen without bottom tabs */}
           <Stack.Screen name="Home" component={HomeScreen} />
+
+          {/* Voice Test Mode Screen */}
+          <Stack.Screen
+            name="VoiceTestMode"
+            component={VoiceTestModeScreen}
+            options={{
+              animation: 'slide_from_right'
+            }}
+          />
 
           {/* Modal/Overlay screens accessible from anywhere */}
           <Stack.Screen

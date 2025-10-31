@@ -1,5 +1,6 @@
 package ac.cbnu.heartcheck.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMax;
 import jakarta.validation.constraints.DecimalMin;
@@ -36,11 +37,13 @@ public class Prediction {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @JsonIgnore
     @NotNull(message = "사용자는 필수입니다")
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @JsonIgnore
     @NotNull(message = "검사 데이터는 필수입니다")
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "assessment_id", nullable = false)
