@@ -1,4 +1,4 @@
-package ac.cbnu.heartcheck.security;
+package ac.cbnu.heartcheck.security.jwt;
 
 import ac.cbnu.heartcheck.util.JwtUtil;
 import jakarta.servlet.FilterChain;
@@ -44,7 +44,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             requestPath.equals("/api/auth/refresh") ||
             requestPath.equals("/api/auth/check-phone") ||
             requestPath.startsWith("/api/auth/check-phone/") ||
-            requestPath.equals("/api/auth/health")) {
+            requestPath.equals("/api/auth/google") ||
+            requestPath.equals("/api/auth/health") ||
+            requestPath.equals("/error")) {
             filterChain.doFilter(request, response);
             return;
         }

@@ -78,7 +78,7 @@ export const SettingsScreen = () => {
           <Icon
             name={item.icon}
             size={24}
-            color={item.id === 'logout' ? colors.error : colors.primary}
+            color={item.id === 'logout' ? colors.error : colors.text}
           />
         </View>
         <Text style={styles.settingLabel}>{item.label}</Text>

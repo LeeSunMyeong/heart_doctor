@@ -9,12 +9,19 @@ const WEB_CLIENT_ID = GOOGLE_WEB_CLIENT_ID || '';
 const IOS_CLIENT_ID = GOOGLE_IOS_CLIENT_ID || '';
 
 export const configureGoogleSignIn = () => {
-  GoogleSignin.configure({
-    webClientId: WEB_CLIENT_ID,
-    iosClientId: IOS_CLIENT_ID,
-    offlineAccess: true,
-    forceCodeForRefreshToken: true,
-  });
+  try {
+    console.log('[GoogleAuth] Configuration starting...');
+    GoogleSignin.configure({
+      webClientId: WEB_CLIENT_ID,
+      iosClientId: IOS_CLIENT_ID,
+      offlineAccess: true,
+      forceCodeForRefreshToken: true,
+    });
+    console.log('[GoogleAuth] Configuration successful');
+  } catch (error) {
+    console.error('[GoogleAuth] Configuration error:', error);
+    // Native module may not be available yet, will retry on actual sign-in
+  }
 };
 
 export interface GoogleLoginResponse {
@@ -39,16 +46,30 @@ export const googleAuthService = {
    */
   async signIn(): Promise<GoogleLoginResponse> {
     try {
-      // Google Sign-In 진행
+      // Google Sign-In 진행 (already configured in App.tsx on startup)
       await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
+      const signInResult = await GoogleSignin.signIn();
 
-      console.log('[GoogleAuth] Sign-In successful:', {
-        user: userInfo.user,
-        hasIdToken: !!userInfo.idToken,
+      console.log('[GoogleAuth] Sign-In successful');
+
+      // Google Sign-In 라이브러리는 {type: 'success', data: {...}} 구조로 반환
+      const userInfo = (signInResult as any).type === 'success'
+        ? (signInResult as any).data
+        : signInResult;
+
+      console.log('[GoogleAuth] idToken exists:', !!userInfo.idToken);
+      console.log('[GoogleAuth] User info received:', {
+        email: userInfo.user?.email ? '***@***' : 'N/A',
+        name: userInfo.user?.name ? '***' : 'N/A',
       });
 
+      if (!userInfo.idToken) {
+        console.error('[GoogleAuth] ERROR: idToken is null or undefined!');
+        throw new Error('Google Sign-In did not return an ID token. Please check your Google OAuth configuration.');
+      }
+
       // ID Token을 백엔드로 전송
+      console.log('[GoogleAuth] Sending request to backend with idToken');
       const response = await axios.post<{
         success: boolean;
         data: GoogleLoginResponse;

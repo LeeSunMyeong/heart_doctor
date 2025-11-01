@@ -1,6 +1,6 @@
 package ac.cbnu.heartcheck.config;
 
-import ac.cbnu.heartcheck.security.JwtAuthenticationFilter;
+import ac.cbnu.heartcheck.security.jwt.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

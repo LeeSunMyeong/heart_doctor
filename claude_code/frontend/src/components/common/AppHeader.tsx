@@ -1,5 +1,6 @@
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {colors, typography, spacing} from '../../styles';
 import {TopNavigation} from './TopNavigation';
 
@@ -10,8 +11,10 @@ interface AppHeaderProps {
 export const AppHeader: React.FC<AppHeaderProps> = ({
   showNotificationDot = true,
 }) => {
+  const insets = useSafeAreaInsets();
+
   return (
-    <View style={styles.header}>
+    <View style={[styles.header, {paddingTop: insets.top + spacing.sm}]}>
       {/* Top Navigation Icons */}
       <TopNavigation hasNotificationBadge={showNotificationDot} />
 
@@ -24,7 +27,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 const styles = StyleSheet.create({
   header: {
     paddingHorizontal: spacing.containerPadding,
-    paddingTop: spacing.md,
     paddingBottom: spacing.md,
     backgroundColor: colors.background,
   },
